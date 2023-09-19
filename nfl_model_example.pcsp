@@ -1,0 +1,70 @@
+﻿//@@National Football League Model@@//
+/*
+
+Field dimensions: 53.333 yards by 120 yards
+Goal dimensions: 18.6 feet wide, approximately 6 yards
+
++----------------------#------#------------------------+
+|                                                      |
+|                                                      |
++-----------------=------------------=-----------------+
+|                 =                  =                 |
++----10-----------=------------------=-----------10----+
+|                 =                  =                 |
++----20-----------=------------------=-----------20----+
+|                 =                  =                 |
++----30-----------=------------------=-----------30----+
+|                 =                  =                 |
++----40-----------=------------------=-----------40----+
+|                 =                  =                 |
++----50-----------=------------------=-----------50----+
+|                 =                  =                 |
++----40-----------=------------------=-----------40----+
+|                 =                  =                 |
++----30-----------=------------------=-----------30----+
+|                 =                  =                 |
++----20-----------=------------------=-----------20----+
+|                 =                  =                 |
++----10-----------=------------------=-----------10----+
+|                 =                  =                 |
++-----------------=------------------=-----------------+
+|                                                      |
+|                                                      |
++-----------------------#------#-----------------------+
+
+*/
+
+// NOTE: Work in progress.
+
+//---- Initialization ----//
+
+// Rolling average of successful run.
+#define run_distance 4; // Enhancement: probability of gaining 1, 2, 3, ... yards for more granularity.
+
+// Rolling average of successful pass.
+#define pass_distance 10; // Enhancement: probability of short/long, left/right pass for more granularity.
+
+// Rolling average of successful kick. (35 for goal, 60 for kickoff, 40 for punt)
+#define kick_distance 35;
+
+//---- End Initialization ----//
+
+// Attacking team starting position.
+// Position can range from 0 to 100 yards.
+var attack_start_position = 25;
+
+// Attacking team distance to goal.
+var attack_distance_to_goal = 75; // or 100 - attack_start_position
+
+// Attacking team distance to down refresh.
+var attack_distance_to_refresh = 10;
+
+// If the ball is in the air.
+var is_ball_in_air = false;
+
+// Actions (plays) available per down.
+enum { run, pass, kick };
+
+//---- Game Simulation Functions ----//
+
+Run() = Skip;
