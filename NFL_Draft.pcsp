@@ -1,0 +1,56 @@
+﻿enum {run, kick, pass}; // Possible play types. These can be extended in the future.
+var down = 1; // Current down, initialized to 1.
+var yards_to_first_down = 10; // Yards needed to get a first down
+var total_yards = 0; // Total yards gained so far
+
+// Constants for play selection probabilities and average yardage gains. Right now, these do not consider position in the field and down number, but it should be extended to do so.
+// These numbers have been hard coded randomly for the sake of demonstration, I did not get these from anywhere.
+#define run_probability 50; // Probability of selecting "run" play
+#define kick_probability 10; // Probability of selecting "kick" play
+#define pass_probability 40; // Probability of selecting "pass" play
+
+#define run_yardage_gain 5; // Average yardage gained in "run" play
+#define kick_yardage_gain 3; // Average yardage gained in "kick" play
+#define pass_yardage_gain 2; // Average yardage gained in "pass" play
+
+GuardedDown = [!(down > 4 || score)]Go -> ExecuteDown;
+
+// Guarded process that only runs the next down if the attacking team has not completed all 4.
+NextPlay = GuardedDown [] [down > 4 || score]GameOver -> Skip;
+
+// Function to simulate a single down. Only executes if the attacking team has not used all 4 downs.
+ExecuteDown = pcase {
+	run_probability: {
+		total_yards = total_yards + run_yardage_gain; // Advance by the average yardage for the play
+		yards_to_first_down = yards_to_first_down - run_yardage_gain; // Update the number of yards needed for a first down
+		if (yards_to_first_down <= 0) {
+			down = 1; // If 10 yards has been advanced, reset to first down
+			yards_to_first_down = 10;
+		} else {
+			down++; //If not, increment down
+		}
+	} -> NextPlay
+	kick_probability: {
+		total_yards = total_yards + kick_yardage_gain;
+		yards_to_first_down = yards_to_first_down - run_yardage_gain;
+		if (yards_to_first_down <= 0) {
+			down = 1; // If 10 yards has been advanced, reset to first down
+			yards_to_first_down = 10;
+		} else {
+			down++; //If not, increment down
+		}
+	} -> NextPlay
+	pass_probability: {
+		total_yards = total_yards + pass_yardage_gain;
+		yards_to_first_down = yards_to_first_down - run_yardage_gain;
+		if (yards_to_first_down <= 0) {
+			down = 1; // If 10 yards has been advanced, reset to first down
+			yards_to_first_down = 10;
+		} else {
+			down++; //If not, increment down
+		}
+	} -> NextPlay
+};
+
+#define score total_yards >= 100; // Condition for scoring
+#assert NextPlay reaches score with prob;
