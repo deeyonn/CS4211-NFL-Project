@@ -49,6 +49,16 @@ var start_bin = 2;
 
 // Score condition
 #define score start_bin == 10;
+#define reaches_bin_1 start_bin == 1;
+#define reaches_bin_2 start_bin == 2;
+#define reaches_bin_3 start_bin == 3;
+#define reaches_bin_4 start_bin == 4;
+#define reaches_bin_5 start_bin == 5;
+#define reaches_bin_6 start_bin == 6;
+#define reaches_bin_7 start_bin == 7;
+#define reaches_bin_8 start_bin == 8;
+#define reaches_bin_9 start_bin == 9;
+#define reaches_bin_10 start_bin == 10;
 
 // Game over condition. Game is modeled as over when the attacking team has 
 // used all 4 downs or has scored.
@@ -146,3 +156,13 @@ ExecuteDown = case {
 
 # assert NextPlay deadlockfree;
 # assert NextPlay reaches score with prob;
+# assert NextPlay reaches reaches_bin_1 with prob;
+# assert NextPlay reaches reaches_bin_2 with prob;
+# assert NextPlay reaches reaches_bin_3 with prob;
+# assert NextPlay reaches reaches_bin_4 with prob;
+# assert NextPlay reaches reaches_bin_5 with prob;
+# assert NextPlay reaches reaches_bin_6 with prob;
+# assert NextPlay reaches reaches_bin_7 with prob;
+# assert NextPlay reaches reaches_bin_8 with prob;
+# assert NextPlay reaches reaches_bin_9 with prob;
+# assert NextPlay reaches reaches_bin_10 with prob;
