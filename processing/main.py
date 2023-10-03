@@ -28,3 +28,6 @@ df = df[(df['home_team'] == TEAM) | (df['away_team'] == TEAM)]
 
 # Print the shape of the DataFrame (again)
 print("Rows: " + str(df.shape[0]), "Columns: " + str(df.shape[1]))
+
+# Export the DataFrame to a .xlsx file
+df.to_excel(f'./output/{TEAM}.xlsx', index=False)
