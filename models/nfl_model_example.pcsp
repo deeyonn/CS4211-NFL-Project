@@ -1,0 +1,86 @@
+﻿//@@National Football League Model@@//
+/*
+
+Field dimensions: 53.333 yards by 120 yards
+Goal dimensions: 18.6 feet wide, approximately 6 yards
+
++----------------------#------#------------------------+
+|                                                      |
+|                                                      |
++-----------------=------------------=-----------------+
+|                 =                  =                 |
++----10-----------=------------------=-----------10----+
+|                 =                  =                 |
++----20-----------=------------------=-----------20----+
+|                 =                  =                 |
++----30-----------=------------------=-----------30----+
+|                 =                  =                 |
++----40-----------=------------------=-----------40----+
+|                 =                  =                 |
++----50-----------=------------------=-----------50----+
+|                 =                  =                 |
++----40-----------=------------------=-----------40----+
+|                 =                  =                 |
++----30-----------=------------------=-----------30----+
+|                 =                  =                 |
++----20-----------=------------------=-----------20----+
+|                 =                  =                 |
++----10-----------=------------------=-----------10----+
+|                 =                  =                 |
++-----------------=------------------=-----------------+
+|                                                      |
+|                                                      |
++-----------------------#------#-----------------------+
+
+*/
+
+// NOTE: Work in progress.
+
+//---- Initialization ----//
+
+// Rolling average of successful run.
+#define run_distance 4; // Enhancement: probability of gaining 1, 2, 3, ... yards for more granularity.
+
+// Rolling average of successful pass.
+#define pass_distance 10; // Enhancement: probability of short/long, left/right pass for more granularity.
+
+// Rolling average of successful kick. (35 for goal, 60 for kickoff, 40 for punt)
+#define kick_distance 35;
+
+// Actions (plays) available per down.
+enum { run, pass, kick };
+
+//---- End Initialization ----//
+
+//---- Game States ----//
+
+// The current down for the attacking team. Range from 1 to 4.
+var current_down = 1;
+
+// The starting position on the field for the attacking team. Range from 0 to 100.
+var start_position = 25;
+
+// The distance to run a goal for the attacking team. Range from 0 to 100.
+var distance_to_goal = 75; // or 100 - attack_start_position
+
+// The distance to refresh the number of downs for the attacking team. Range from 0 to 10.
+var distance_to_refresh = 10;
+
+// If the ball is in the air.
+var is_ball_in_air = false;
+
+//---- End Game State ----//
+
+//---- Game Simulation Functions ----//
+
+/* Format of a process is as follows
+ProcessName(...parameters) = [conditions]functionName -> pcase {
+	case1: functionName -> ProcessName(...parameters); NextProcess
+}
+*/
+
+Play(yards_to_refresh, starting_position, score_differential, time_remaining) = []play -> pcase {
+	
+}
+
+//---- End Game Simulation Functions ----//
