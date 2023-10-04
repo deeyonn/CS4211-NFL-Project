@@ -191,13 +191,15 @@ ChooseAction(_run, _pass, _punt, _pass_success, _run_success, _touchdown, _field
 	_punt: { down = 5; } -> NextPlay // Game over
 	_pass_success: { down = 1; bin++ } -> NextPlay
 	_run_success: { down = 1; bin++ } -> NextPlay
-	_touchdown: { down = 5; } -> NextPlay // Game over
-	_field_goal: { down = 5; } -> NextPlay // Game over
+	_touchdown: { down = 5; bin = 10 } -> NextPlay // Game over
+	_field_goal: { down = 5; bin = 10 } -> NextPlay // Game over
 	_turnover: { down = 5; } -> NextPlay // Game over
 };
 
 # assert NextPlay deadlockfree;
-# assert NextPlay reaches YARD_0 with prob;
+
+// Only YARD_x > starting position are relevant
+# assert NextPlay reaches YARD_0 with prob; 
 # assert NextPlay reaches YARD_10 with prob;
 # assert NextPlay reaches YARD_20 with prob;
 # assert NextPlay reaches YARD_30 with prob;
