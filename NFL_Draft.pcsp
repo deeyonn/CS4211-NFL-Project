@@ -9,160 +9,202 @@ Goal dimensions: 18.6 feet wide, approximately 6 yards
 
 +----------------------#------#------------------------+
 |                                                      |
-|                                                      |
+|                        bin 10                        |
 +-----------------=------------------=-----------------+
-|                 =                  =                 |
+|                 =      bin 9       =                 |
 +----10-----------=------------------=-----------10----+
-|                 =                  =                 |
+|                 =      bin 8       =                 |
 +----20-----------=------------------=-----------20----+
-|                 =                  =                 |
+|                 =      bin 7       =                 |
 +----30-----------=------------------=-----------30----+
-|                 =                  =                 |
+|                 =      bin 6       =                 |
 +----40-----------=------------------=-----------40----+
-|                 =                  =                 |
+|                 =      bin 5       =                 |
 +----50-----------=------------------=-----------50----+
-|                 =                  =                 |
+|                 =      bin 4       =                 |
 +----40-----------=------------------=-----------40----+
-|                 =                  =                 |
+|                 =      bin 3       =                 |
 +----30-----------=------------------=-----------30----+
-|                 =                  =                 |
+|                 =      bin 2       =                 |
 +----20-----------=------------------=-----------20----+
-|                 =                  =                 |
+|                 =      bin 1       =                 |
 +----10-----------=------------------=-----------10----+
-|                 =                  =                 |
+|                 =      bin 0       =                 |
 +-----------------=------------------=-----------------+
-|                                                      |
-|                                                      |
+|                       Attacking                      |
+|                         Team                         |
 +-----------------------#------#-----------------------+
 
 */
 
-//---- Initialization ----//
+//---- Model Setup ----//
 
-// The current down for the attacking team. Range from 1 to 4.
+// The current down. The attacking team starts with 1st down.
 var down = 1;
 
 /* Starting position for the attacking team.
 We split the field into 10 yard bins, so the starting position is the bin number.
 The attacking team starts at the 20 yard line, so the starting bin is 2. */
-var start_bin = 2;
+var bin = 2;
 
-// Score condition
-#define score start_bin == 10;
-#define reaches_bin_1 start_bin == 1;
-#define reaches_bin_2 start_bin == 2;
-#define reaches_bin_3 start_bin == 3;
-#define reaches_bin_4 start_bin == 4;
-#define reaches_bin_5 start_bin == 5;
-#define reaches_bin_6 start_bin == 6;
-#define reaches_bin_7 start_bin == 7;
-#define reaches_bin_8 start_bin == 8;
-#define reaches_bin_9 start_bin == 9;
-#define reaches_bin_10 start_bin == 10;
+/* The conditions to check the probability of the attacking team reaching a 
+particular bin from the starting bin. */
+#define YARD_0 bin == 0;
+#define YARD_10 bin == 1;
+#define YARD_20 bin == 2;
+#define YARD_30 bin == 3;
+#define YARD_40 bin == 4;
+#define YARD_50 bin == 5;
+#define YARD_60 bin == 6;
+#define YARD_70 bin == 7;
+#define YARD_80 bin == 8;
+#define YARD_90 bin == 9;
+#define YARD_100 bin == 10;
 
-// Game over condition. Game is modeled as over when the attacking team has 
-// used all 4 downs or has scored.
-#define GameOver down > 4 || score;
+/* The condition to check the probability of the attacking team using up all 4
+downs without gaining a first down or has reached the last bin. */
+#define GAME_OVER down > 4 || YARD_100;
 
-/* Actions (plays) available per down. These can be extended in the future.
-run_refresh and pass_refresh are used to model a run or pass that refreshes
+/* The actions (plays) available per down. These can be extended in the future.
+RUN_SUCCESS and PASS_SUCCESS are used to model a run or pass that refreshes
 the down. This is to model the fact that a team can run or pass multiple times
 in a row without losing the ball but have not gained enough yards for a first down. */
-enum { run, pass, kick, run_refresh, pass_refresh };
+enum { RUN, PASS, PUNT, PASS_SUCCESS, RUN_SUCCESS, TOUCHDOWN, FIELD_GOAL, TURNOVER };
 
-//---- End Initialization ----//
+//---- End Model Setup ----//
 
-//---- Probabilities ----//
+//---- Probabilities Setup ----//
 
-/* For this simple model, we have 4 different sets of probabilities for the
-attacking team. The probabilities are defined in the form of p_play_x_y,
-where x is the down number and y is the half of the field. We need to model the
-fact that teams have conservative play calling in the first half of the
-field, and aggressive play calling in the second half of the field. In addition,
-the 4th down where the team is more likely to kick the ball.
-We might extend it to consider the bin number in y. */
+/* For this simple model, we have 8 different sets of probabilities for the
+attacking team. The probabilities are defined in the form of x_y_z, where
+x: The side of the field the attacking team is on. home or away.
+y: The down number.
+z: The play. run, pass, punt, pass_SUCCESS, run_SUCCESS, touchdown, field_goal, turnover.
+We need to model the fact that teams have conservative play calling in their half 
+of the field, and aggressive play calling in the away half of the field. 
+In addition, the 4th down where the team is more likely to kick the ball.
+We might extend it to consider a more granular probability i.e. per 10 yards, or
+model in the defensive team. */
 
-#define p_run_1_1 70;
-#define p_pass_1_1 20;
-#define p_kick_1_1 1;
-#define p_run_refresh_1_1 5;
-#define p_pass_refresh_1_1 4;
+#define HOME_1ST_RUN 367;
+#define HOME_1ST_PASS 335;
+#define HOME_1ST_PUNT 0;
+#define HOME_1ST_PASS_SUCCESS 174;
+#define HOME_1ST_RUN_SUCCESS 66;
+#define HOME_1ST_TOUCHDOWN 4;
+#define HOME_1ST_FIELD_GOAL 0;
+#define HOME_1ST_TURNOVER 5;
 
-#define p_run_1_2 50;
-#define p_pass_1_2 30;
-#define p_kick_1_2 5;
-#define p_run_refresh_1_2 3;
-#define p_pass_refresh_1_2 2;
+#define HOME_2ND_RUN 120;
+#define HOME_2ND_PASS 240;
+#define HOME_2ND_PUNT 0;
+#define HOME_2ND_PASS_SUCCESS 210;
+#define HOME_2ND_RUN_SUCCESS 79;
+#define HOME_2ND_TOUCHDOWN 2;
+#define HOME_2ND_FIELD_GOAL 0;
+#define HOME_2ND_TURNOVER 3;
 
-#define p_run_4_1 10;
-#define p_pass_4_1 15;
-#define p_kick_4_1 60;
-#define p_run_refresh_4_1 5;
-#define p_pass_refresh_4_1 5;
+#define HOME_3RD_RUN 26;
+#define HOME_3RD_PASS 133;
+#define HOME_3RD_PUNT 0;
+#define HOME_3RD_PASS_SUCCESS 118;
+#define HOME_3RD_RUN_SUCCESS 42;
+#define HOME_3RD_TOUCHDOWN 2;
+#define HOME_3RD_FIELD_GOAL 0;
+#define HOME_3RD_TURNOVER 1;
 
-#define p_run_4_2 5;
-#define p_pass_4_2 10;
-#define p_kick_4_2 70;
-#define p_run_refresh_4_2 3;
-#define p_pass_refresh_4_2 2;
+#define HOME_4TH_RUN 1;
+#define HOME_4TH_PASS 30;
+#define HOME_4TH_PUNT 142;
+#define HOME_4TH_PASS_SUCCESS 3;
+#define HOME_4TH_RUN_SUCCESS 5;
+#define HOME_4TH_TOUCHDOWN 0;
+#define HOME_4TH_FIELD_GOAL 0;
+#define HOME_4TH_TURNOVER 0;
 
-//---- End Probabilities ----//
+#define AWAY_1ST_RUN 295;
+#define AWAY_1ST_PASS 315;
+#define AWAY_1ST_PUNT 0;
+#define AWAY_1ST_PASS_SUCCESS 85;
+#define AWAY_1ST_RUN_SUCCESS 52;
+#define AWAY_1ST_TOUCHDOWN 70;
+#define AWAY_1ST_FIELD_GOAL 4;
+#define AWAY_1ST_TURNOVER 8;
 
-GuardedDown = [!GameOver]Go->ExecuteDown;
+#define AWAY_2ND_RUN 122;
+#define AWAY_2ND_PASS 231;
+#define AWAY_2ND_PUNT 0;
+#define AWAY_2ND_PASS_SUCCESS 136;
+#define AWAY_2ND_RUN_SUCCESS 81;
+#define AWAY_2ND_TOUCHDOWN 61;
+#define AWAY_2ND_FIELD_GOAL 3;
+#define AWAY_2ND_TURNOVER 11;
+
+#define AWAY_3RD_RUN 34;
+#define AWAY_3RD_PASS 146;
+#define AWAY_3RD_PUNT 0;
+#define AWAY_3RD_PASS_SUCCESS 88;
+#define AWAY_3RD_RUN_SUCCESS 43;
+#define AWAY_3RD_TOUCHDOWN 53;
+#define AWAY_3RD_FIELD_GOAL 4;
+#define AWAY_3RD_TURNOVER 5;
+
+#define AWAY_4TH_RUN 3;
+#define AWAY_4TH_PASS 11;
+#define AWAY_4TH_PUNT 27;
+#define AWAY_4TH_PASS_SUCCESS 13;
+#define AWAY_4TH_RUN_SUCCESS 7;
+#define AWAY_4TH_TOUCHDOWN 5;
+#define AWAY_4TH_FIELD_GOAL 83;
+#define AWAY_4TH_TURNOVER 12;
+
+//---- End Probabilities Setup ----//
+
+GuardedDown = [!GAME_OVER]Go->ExecuteDown;
 
 // Guarded process that only runs the next down if the attacking team has not completed all 4.
-NextPlay = GuardedDown[][GameOver] Skip;
+NextPlay = GuardedDown[][GAME_OVER] Skip;
 
 // Function to simulate a single down. Only executes if the attacking team has not used all 4 downs.
 ExecuteDown = case {
-	down < 4: case {
-		// If the attacking team is in the first half of the field, 
-		// use the first set of probabilities.
-		start_bin < 5: pcase {
-			// Select a play based on the probabilities defined above.
-			// If the play is a "refresh" play, reset the down to 1 and increment the start_bin.
-			// Otherwise, increment the down.
-			p_run_1_1: { down++; } -> NextPlay
-			p_pass_1_1: { down++; } -> NextPlay
-			p_kick_1_1: { down = 5; } -> NextPlay // Game over
-			p_run_refresh_1_1: { down = 1; start_bin++ } -> NextPlay
-			p_pass_refresh_1_1: { down = 1; start_bin++ } -> NextPlay
-		}
-		start_bin >= 5: pcase {
-			p_run_1_2: { down++; } -> NextPlay
-			p_pass_1_2: { down++; } -> NextPlay
-			p_kick_1_2: { down = 5; } -> NextPlay // Game over
-			p_run_refresh_1_2: { down = 1; start_bin++ } -> NextPlay
-			p_pass_refresh_1_2: { down = 1; start_bin++ } -> NextPlay
-		}
+	down == 1: case {
+		bin < 5: ChooseAction(HOME_1ST_RUN, HOME_1ST_PASS, HOME_1ST_PUNT, HOME_1ST_PASS_SUCCESS, HOME_1ST_RUN_SUCCESS, HOME_1ST_TOUCHDOWN, HOME_1ST_FIELD_GOAL, HOME_1ST_TURNOVER)
+		bin >= 5: ChooseAction(AWAY_1ST_RUN, AWAY_1ST_PASS, AWAY_1ST_PUNT, AWAY_1ST_PASS_SUCCESS, AWAY_1ST_RUN_SUCCESS, AWAY_1ST_TOUCHDOWN, AWAY_1ST_FIELD_GOAL, AWAY_1ST_TURNOVER)
+	}
+	down == 2: case {
+		bin < 5: ChooseAction(HOME_2ND_RUN, HOME_2ND_PASS, HOME_2ND_PUNT, HOME_2ND_PASS_SUCCESS, HOME_2ND_RUN_SUCCESS, HOME_2ND_TOUCHDOWN, HOME_2ND_FIELD_GOAL, HOME_2ND_TURNOVER)
+		bin >= 5: ChooseAction(AWAY_2ND_RUN, AWAY_2ND_PASS, AWAY_2ND_PUNT, AWAY_2ND_PASS_SUCCESS, AWAY_2ND_RUN_SUCCESS, AWAY_2ND_TOUCHDOWN, AWAY_2ND_FIELD_GOAL, AWAY_2ND_TURNOVER)
+	}
+	down == 3: case {
+		bin < 5: ChooseAction(HOME_3RD_RUN, HOME_3RD_PASS, HOME_3RD_PUNT, HOME_3RD_PASS_SUCCESS, HOME_3RD_RUN_SUCCESS, HOME_3RD_TOUCHDOWN, HOME_3RD_FIELD_GOAL, HOME_3RD_TURNOVER)
+		bin >= 5: ChooseAction(AWAY_3RD_RUN, AWAY_3RD_PASS, AWAY_3RD_PUNT, AWAY_3RD_PASS_SUCCESS, AWAY_3RD_RUN_SUCCESS, AWAY_3RD_TOUCHDOWN, AWAY_3RD_FIELD_GOAL, AWAY_3RD_TURNOVER)
 	}
 	down == 4: case {
-		start_bin < 5: pcase {
-			p_run_4_1: { down++; } -> NextPlay
-			p_pass_4_1: { down++; } -> NextPlay
-			p_kick_4_1: { down = 5; } -> NextPlay // Game over
-			p_run_refresh_4_1: { down = 1; start_bin++ } -> NextPlay
-			p_pass_refresh_1_1: { down = 1; start_bin++ } -> NextPlay
-		}
-		start_bin >= 5: pcase {
-			p_run_4_2: { down++; } -> NextPlay
-			p_pass_4_2: { down++; } -> NextPlay
-			p_kick_4_2: { down = 5; } -> NextPlay // Game over
-			p_run_refresh_4_2: { down = 1; start_bin++ } -> NextPlay
-			p_pass_refresh_4_2: { down = 1; start_bin++ } -> NextPlay
-		}
+		bin < 5: ChooseAction(HOME_4TH_RUN, HOME_4TH_PASS, HOME_4TH_PUNT, HOME_4TH_PASS_SUCCESS, HOME_4TH_RUN_SUCCESS, HOME_4TH_TOUCHDOWN, HOME_4TH_FIELD_GOAL, HOME_4TH_TURNOVER)
+		bin >= 5: ChooseAction(AWAY_4TH_RUN, AWAY_4TH_PASS, AWAY_4TH_PUNT, AWAY_4TH_PASS_SUCCESS, AWAY_4TH_RUN_SUCCESS, AWAY_4TH_TOUCHDOWN, AWAY_4TH_FIELD_GOAL, AWAY_4TH_TURNOVER)
 	}
 };
 
+ChooseAction(_run, _pass, _punt, _pass_success, _run_success, _touchdown, _field_goal, _turnover) = pcase {
+	_run: { down++; } -> NextPlay
+	_pass: { down++; } -> NextPlay
+	_punt: { down = 5; } -> NextPlay // Game over
+	_pass_success: { down = 1; bin++ } -> NextPlay
+	_run_success: { down = 1; bin++ } -> NextPlay
+	_touchdown: { down = 5; } -> NextPlay // Game over
+	_field_goal: { down = 5; } -> NextPlay // Game over
+	_turnover: { down = 5; } -> NextPlay // Game over
+};
+
 # assert NextPlay deadlockfree;
-# assert NextPlay reaches score with prob;
-# assert NextPlay reaches reaches_bin_1 with prob;
-# assert NextPlay reaches reaches_bin_2 with prob;
-# assert NextPlay reaches reaches_bin_3 with prob;
-# assert NextPlay reaches reaches_bin_4 with prob;
-# assert NextPlay reaches reaches_bin_5 with prob;
-# assert NextPlay reaches reaches_bin_6 with prob;
-# assert NextPlay reaches reaches_bin_7 with prob;
-# assert NextPlay reaches reaches_bin_8 with prob;
-# assert NextPlay reaches reaches_bin_9 with prob;
-# assert NextPlay reaches reaches_bin_10 with prob;
+# assert NextPlay reaches YARD_0 with prob;
+# assert NextPlay reaches YARD_10 with prob;
+# assert NextPlay reaches YARD_20 with prob;
+# assert NextPlay reaches YARD_30 with prob;
+# assert NextPlay reaches YARD_40 with prob;
+# assert NextPlay reaches YARD_50 with prob;
+# assert NextPlay reaches YARD_60 with prob;
+# assert NextPlay reaches YARD_70 with prob;
+# assert NextPlay reaches YARD_80 with prob;
+# assert NextPlay reaches YARD_90 with prob;
+# assert NextPlay reaches YARD_100 with prob;
