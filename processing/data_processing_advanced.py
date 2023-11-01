@@ -151,7 +151,7 @@ def play_type_frequency(data, num_sides):
         count = len(filtered)
         value = str(side)
 
-        print(value + " = " + str(count))
+        #print(value + " = " + str(count))
 
         results_df.loc[len(results_df)] = {'Value': value, 'Count': count}
 
@@ -161,7 +161,7 @@ def play_type_frequency(data, num_sides):
             count = len(filtered_downs)
             value = str(side) + "_" + str(down)
 
-            print(value + " = " + str(count))
+            #print(value + " = " + str(count))
 
             results_df.loc[len(results_df)] = {'Value': value, 'Count': count}
 
@@ -170,7 +170,7 @@ def play_type_frequency(data, num_sides):
                 count = len(filtered_types)
                 value = str(side) + "_" + str(down) + "_" + play_type
 
-                print(value + " = " + str(count))
+                #print(value + " = " + str(count))
 
                 results_df.loc[len(results_df)] = {'Value': value, 'Count': count}
 
@@ -220,7 +220,7 @@ def yards_gained_arrays(data, num_sides):
                     # Get the yards_gained value for this row
                     yards_gained = row[1]['yards_gained']
 
-                    print(yards_gained)
+                    #print(yards_gained)
 
                     # Add yards_gained to the list
                     yards_gained_list.append(yards_gained)
@@ -246,7 +246,7 @@ def type(team):
 
 if __name__ == "__main__":
     data = data_manipulation(data_preparation('KC'))
-    print(data)
+    #print(data)
 
     play_type_frequency(data, 4)
     result = yards_gained_arrays(data, 4)
@@ -254,4 +254,4 @@ if __name__ == "__main__":
     first = result["0_1st_pass"]
 
     for k in first:
-        print("0_1st_pass = " + str(k))
+        #print("0_1st_pass = " + str(k))
