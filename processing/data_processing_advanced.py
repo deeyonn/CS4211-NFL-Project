@@ -253,5 +253,3 @@ if __name__ == "__main__":
 
     first = result["0_1st_pass"]
 
-    for k in first:
-        #print("0_1st_pass = " + str(k))
