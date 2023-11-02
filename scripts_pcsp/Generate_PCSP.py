@@ -1,5 +1,6 @@
 import os
 import sys
+import math
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.append(parent_dir)
 from processing.distributions import probabilities as yard_probabilities_dict
@@ -16,7 +17,7 @@ BR_4TAB = "\n\t\t\t\t"
 TEAM = "KC"
 ZONE = 4
 DOWN = ['1st', '2nd', '3rd', '4th'] 
-PLAYS = ['run', 'pass', 'punt', 'fieldgoal', 'turnover']
+PLAYS = ['run', 'pass', 'punt', 'field_goal', 'turnover']
 YARDAGE_INCREMENT = 4
 MAX_YARDAGE = 20
 
@@ -35,13 +36,13 @@ def generate_model_string(ZONE, DOWN, PLAYS, YARDAGE_INCREASE):
             model_string += f"{BR_2TAB}zone == {zone}: pcase {{"
 
             for play in PLAYS:
-                model_string += f"{BR_3TAB}{zone}_{down}_{play}: "
+                model_string += f"{BR_3TAB}_{zone}_{down}_{play}: "
 
                 if play == "run" or play == "pass":
                     model_string += "pcase {"
 
                     for yardage in YARDAGE_INCREASE:
-                        model_string += f"{BR_4TAB}{zone}_{down}_{play}_{yardage}: "
+                        model_string += f"{BR_4TAB}_{zone}_{down}_{play}_{yardage}: "
 
                         if yardage <= 10:
                             model_string += f"{play}{{ down++; pos = pos + {yardage} }} -> NextPlay"
@@ -50,12 +51,14 @@ def generate_model_string(ZONE, DOWN, PLAYS, YARDAGE_INCREASE):
 
                     model_string += f"{BR_3TAB}}}"
 
-                elif play == "punt" or play == "turnover" or play == "field_goal":
-                    model_string += f"{play}{{down = 5;}} -> NextPlay // Game over"
+                elif play == "punt" or play == "turnover":
+                    model_string += f"{play}{{down = 5}} -> NextPlay // Game over"
+                elif play == "field_goal":
+                    model_string += f"{play}{{score_field_goal = 1}} -> NextPlay // Game over"
 
             model_string += f"{BR_2TAB}}}"
         model_string += f"{BR_TAB}}}"
-    model_string += f"{BR}}}"
+    model_string += f"{BR}}};"
     return model_string
 
 # generate pcsp file
@@ -65,7 +68,6 @@ def generate_pcsp():
 
     model_string = generate_model_string(ZONE, DOWN, PLAYS, YARDAGE_INCREASE)
     play_probabilities_df = get_data_for_team(TEAM)
-    print(play_probabilities_df)
     
     # file_name = '%s_%s_%s.pcsp' % (date, team1_name.replace(' ', '-'), team2_name.replace(' ', '-'))
     file_name = 'output/test.pcsp'
@@ -76,11 +78,13 @@ def generate_pcsp():
         
     play_probabilities_string = "\n"
     for index, row in play_probabilities_df.iterrows():
-        play_probabilities_string += '#define %s %d;\n' % (row["Value"], row["Count"])
+        play_probabilities_string += '#define _%s %d;\n' % (row["Value"], row["Count"])
 
     yard_probabilities_string = "\n"
     for p_name, p in yard_probabilities_dict.items():
-        yard_probabilities_string += '#define %s %f;\n' % (p_name, p)
+        #TODO: make it dynamic
+        p = int(math.floor(p * 100000000))
+        yard_probabilities_string += '#define _%s %d;\n' % (p_name, p)
     yard_probabilities_string += "\n//---- End Probabilities Setup ----//\n\n"
 
     assertions_string = []

@@ -6,7 +6,7 @@ import warnings
 import csv
 
 def generate_nfl_like_dummy_data():
-    ZONES = [0, 1, 2, 3]
+    ZONES = [1, 2, 3, 4]
     DOWNS = ["1st", "2nd", "3rd", "4th"]
     PLAYS = ["run", "pass"]
 
