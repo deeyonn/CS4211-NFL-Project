@@ -151,9 +151,9 @@ def play_type_frequency(data, num_sides):
         count = len(filtered)
         value = str(side)
 
-        #print(value + " = " + str(count))
+        # print(value + " = " + str(count))
 
-        results_df.loc[len(results_df)] = {'Value': value, 'Count': count}
+        # results_df.loc[len(results_df)] = {'Value': value, 'Count': count}
 
         for down in downs:
 
@@ -161,16 +161,16 @@ def play_type_frequency(data, num_sides):
             count = len(filtered_downs)
             value = str(side) + "_" + str(down)
 
-            #print(value + " = " + str(count))
+            # print(value + " = " + str(count))
 
-            results_df.loc[len(results_df)] = {'Value': value, 'Count': count}
+            # results_df.loc[len(results_df)] = {'Value': value, 'Count': count}
 
             for play_type in types:
                 filtered_types = filtered_downs[filtered_downs['actions'] == play_type]
                 count = len(filtered_types)
                 value = str(side) + "_" + str(down) + "_" + play_type
 
-                #print(value + " = " + str(count))
+                # print(value + " = " + str(count))
 
                 results_df.loc[len(results_df)] = {'Value': value, 'Count': count}
 
