@@ -3,9 +3,9 @@ import pandas as pd
 
 def data_preparation(team):
     # read in the season specific csv files
-    nfl20 = pd.read_csv("play_by_play_2020.csv", low_memory=False)
-    nfl21 = pd.read_csv("play_by_play_2021.csv", low_memory=False)
-    nfl22 = pd.read_csv("play_by_play_2022.csv", low_memory=False)
+    nfl20 = pd.read_csv("../datasets/play_by_play_2020.csv", low_memory=False)
+    nfl21 = pd.read_csv("../datasets/play_by_play_2021.csv", low_memory=False)
+    nfl22 = pd.read_csv("../datasets/play_by_play_2022.csv", low_memory=False)
 
     # adding season parameter to each csv file
     nfl20['season'] = 20
