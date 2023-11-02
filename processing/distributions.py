@@ -92,8 +92,3 @@ data = generate_nfl_like_dummy_data()
 probabilities = fit_negative_binomial_mle(data)
 # print(probabilities)
 # print(len(probabilities))
-
-csv_filename = 'probabilities.csv'
-save_probabilities_to_csv(probabilities, csv_filename)
-
-

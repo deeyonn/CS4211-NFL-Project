@@ -1,5 +1,9 @@
-from distributions import probabilities as yard_probabilities_dict
-from data_processing_advanced import type as get_data_for_team
+import os
+import sys
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(parent_dir)
+from processing.distributions import probabilities as yard_probabilities_dict
+from processing.data_processing_advanced import type as get_data_for_team
 
 # Convenience constants for line breaks and indentation.
 BR = "\n"
@@ -46,7 +50,7 @@ def generate_model_string(ZONE, DOWN, PLAYS, YARDAGE_INCREASE):
 
                     model_string += f"{BR_3TAB}}}"
 
-                elif play == "punt" or play == "turnover" or play == "fieldgoal":
+                elif play == "punt" or play == "turnover" or play == "field_goal":
                     model_string += f"{play}{{down = 5;}} -> NextPlay // Game over"
 
             model_string += f"{BR_2TAB}}}"
@@ -54,34 +58,27 @@ def generate_model_string(ZONE, DOWN, PLAYS, YARDAGE_INCREASE):
     model_string += f"{BR}}}"
     return model_string
 
-def format_pcsp(list):
-    new_list = []
-    for section in list:
-        section += "\n\n"
-        new_list.append(section)
-    return new_list
-
 # generate pcsp file
 def generate_pcsp():
-    SETUP = 'processing/model_setup.txt'
-    ASSERTIONS = 'processing/assertions.txt'
+    SETUP = 'scripts_pcsp/model_setup.txt'
+    ASSERTIONS = 'scripts_pcsp/assertions.txt'
 
     model_string = generate_model_string(ZONE, DOWN, PLAYS, YARDAGE_INCREASE)
     play_probabilities_df = get_data_for_team(TEAM)
     print(play_probabilities_df)
     
     # file_name = '%s_%s_%s.pcsp' % (date, team1_name.replace(' ', '-'), team2_name.replace(' ', '-'))
-    file_name = 'test.pcsp'
+    file_name = 'output/test.pcsp'
 
     setup_string = []
     with open(SETUP) as f:
         setup_string = f.readlines()
         
-    play_probabilities_string = ""
+    play_probabilities_string = "\n"
     for index, row in play_probabilities_df.iterrows():
         play_probabilities_string += '#define %s %d;\n' % (row["Value"], row["Count"])
 
-    yard_probabilities_string = "\n\n"
+    yard_probabilities_string = "\n"
     for p_name, p in yard_probabilities_dict.items():
         yard_probabilities_string += '#define %s %f;\n' % (p_name, p)
     yard_probabilities_string += "\n//---- End Probabilities Setup ----//\n\n"
@@ -91,10 +88,6 @@ def generate_pcsp():
         assertions_string = f.readlines()
     
     lines = setup_string + [play_probabilities_string] + [yard_probabilities_string] + [model_string] + assertions_string
-    # lines.append(setup_string)
-    # lines.append(y)
-    # lines.append(setup_string)
-    # lines.append(setup_string)
 
     # write to file
     with open(file_name, 'w') as f:
