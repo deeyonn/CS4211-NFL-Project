@@ -4,17 +4,14 @@
 
 ### Virtual Environment
 Run `python -m venv .venv` to create a virtual environment.
-Run `./venv/Scripts/Activate.ps1` to activate the virtual environment.
+Run `./.venv/Scripts/Activate.ps1` to activate the virtual environment. (Windows)
 
 ### Dependencies
 Run `pip install -r requirements.txt` to install dependencies.
 
-## Data Processing
+### Generate PCSP file
+Run `Generate_PCSP.py` in the `scripts_pcsp` folder to generate the PCSP file.
+The PCSP file generated can be found in the `output` folder
 
-### Input Data
-Place the input data in the `./dataset` folder.
-
-### Preprocessing
-Run `python ./processing/main.py` to preprocess the data. 
-The processed data will be output to `./output/{TEAM}.xlsx`.
-Be sure to change the `TEAM` variable in `main.py` to the team you want to process.
+#### Note
+Modify the constants or team details in the `Generate_PCSP.py` file as needed.
