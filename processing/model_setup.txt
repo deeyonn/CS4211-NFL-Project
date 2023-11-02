@@ -1,0 +1,74 @@
+/* 
+
+Field dimensions: 53.333 yards by 120 yards
+Goal dimensions: 18.6 feet wide, approximately 6 yards
+
+Note: The yardage numbers in the diagram are for visualization purposes only;
+the actual representation of an American Football field varies slightly.
+
+                  score a fieldgoal
+                           |
+                           v
++----------------------#------#------------------------+
+|                                                      |  
+|                                                      |  
++----100----------=------------------=-----------100---+   <- score a touchdown after 100 yards
+|                 =                  =                 |
++----90-----------=------------------=-----------90----+
+|                 =                  =                 |
++----80-----------=------------------=-----------80----+
+|                 =                  =                 |
++----70-----------=------------------=-----------70----+
+|                 =                  =                 |
++----60-----------=------------------=-----------60----+
+|                 =                  =                 |
++----50-----------=------------------=-----------50----+
+|                 =                  =                 |
++----40-----------=------------------=-----------40----+
+|                 =                  =                 |
++----30-----------=------------------=-----------30----+
+|                 =                  =                 |
++----20-----------=----start here----=-----------20----+
+|                 =                  =                 |
++----10-----------=------------------=-----------10----+
+|                 =                  =                 |
++----0------------=------------------=-----------0-----+
+|                       Attacking                      |
+|                         Team                         |
++-----------------------#------#-----------------------+
+
+*/
+
+//---- Model Setup ----//
+
+// The current down. The attacking team starts with 1st down.
+var down = 1;
+
+// Starting position for the attacking team
+var pos = 20;
+
+// Indicate whether a fieldgoal is scored
+var fieldgoal = 0
+
+/* The condition to check the probability of the attacking team using up all 4
+downs without gaining a first down or has reached the last bin. */
+#define GAME_OVER down > 4 || YARD_100;
+
+// Attacking team can score two types of goals namely the fieldgoal and touchdown
+#define SCORE_FIELDGOAL fieldgoal == 1
+#define SCORE_TOUCHDOWN pos >= 100
+
+//---- End Model Setup ----//
+
+//---- Probabilities Setup ----//
+
+/* 
+For this model, we have two types of probabilities: 
+1. probability of choosing a play in the form of x_y_z
+2. probability of the play advancing d yards in the form of x_y_z_d
+where
+x: The zone of the field the attacking team is in. (100 yards split into x zones)
+y: The down number.
+z: The play. run, pass, punt, fieldgoal, turnover.
+d: The number of yards a play managed to advance.
+*/

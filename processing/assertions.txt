@@ -1,0 +1,4 @@
+
+# assert NextPlay deadlockfree;
+# assert NextPlay reaches SCORE_FIELDGOAL with prob;
+# assert NextPlay reaches SCORE_TOUCHDOWN with prob;
