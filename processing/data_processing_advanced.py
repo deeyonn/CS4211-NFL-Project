@@ -40,13 +40,13 @@ def bucket_column(data):
     # TODO: make it more versatile for multiple buckets for future modifications
     def assign_value(row):
         if row['yardline_100'] <= 25.0:
-            return '0'
-        elif row['yardline_100'] > 25.0 and row['yardline_100'] <= 50.0:
             return '1'
-        elif row['yardline_100'] > 50.0 and row['yardline_100'] <= 75.0:
+        elif row['yardline_100'] > 25.0 and row['yardline_100'] <= 50.0:
             return '2'
-        else:
+        elif row['yardline_100'] > 50.0 and row['yardline_100'] <= 75.0:
             return '3'
+        else:
+            return '4'
 
     # Apply the function to create the new column
     data['side'] = data.apply(assign_value, axis=1)
@@ -127,7 +127,7 @@ def play_type_frequency(data, num_sides):
     team_nfl['down'] = team_nfl['down'].replace(down_mapping)
 
     sides = []
-    for i in range(0, num_sides):
+    for i in range(1, num_sides + 1):
         sides.append(str(i))
 
     downs = ['1st', '2nd', '3rd', '4th']
@@ -192,7 +192,7 @@ def yards_gained_arrays(data, num_sides):
     team_nfl['down'] = team_nfl['down'].replace(down_mapping)
 
     sides = []
-    for i in range(0, num_sides):
+    for i in range(1, num_sides + 1):
         sides.append(str(i))
 
     downs = ['1st', '2nd', '3rd', '4th']
@@ -251,5 +251,5 @@ if __name__ == "__main__":
     play_type_frequency(data, 4)
     result = yards_gained_arrays(data, 4)
 
-    first = result["0_1st_pass"]
+    first = result["1_1st_pass"]
 
