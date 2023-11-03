@@ -14,7 +14,7 @@ Mac: Run `source .venv/bin/activate` to activate the virtual environment.
 Run `pip install -r requirements.txt` to install dependencies.
 
 ### Generate PCSP file
-Run `./scripts_pcsp/Generate_PCSP.py` to generate the PCSP file.
+Run `python ./scripts_pcsp/Generate_PCSP.py` to generate the PCSP file.
 
 The PCSP file generated can be found in the `output` folder
 
