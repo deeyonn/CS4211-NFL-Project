@@ -7,6 +7,7 @@ Run `python -m venv .venv` to create a virtual environment.
 
 #### Activate Virtual Environment
 Windows: Run `./.venv/Scripts/Activate.ps1` to activate the virtual environment.
+
 Mac: Run `source .venv/bin/activate` to activate the virtual environment.
 
 ### Dependencies
