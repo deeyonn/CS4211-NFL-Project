@@ -1,0 +1,14 @@
+UpdateDown() = case {
+	pos - pos_down >= 10: { pos_down = pos; down++ } -> NextPlay
+	pos - pos_down < 10: { down++ } -> NextPlay
+};
+
+UpdatePos(yards_advanced) = { pos = pos + yards_advanced } -> UpdateDown();
+
+UpdateZone(yards_advanced) = case {
+	pos + yards_advanced > 100: { pos = pos + yards_advanced } -> NextPlay
+	pos + yards_advanced > 74: { zone = 4 } -> NextPlay
+	pos + yards_advanced > 49: { zone = 3 } -> NextPlay
+	pos + yards_advanced > 24: { zone = 2 } -> NextPlay
+	pos + yards_advanced > 0: { zone = 1 } -> UpdatePos(yards_advanced)
+};
