@@ -64,6 +64,7 @@ def generate_model_string(ZONE, DOWN, PLAYS, YARDAGE_INCREASE):
 # generate pcsp file
 def generate_pcsp():
     SETUP = 'scripts_pcsp/model_setup.txt'
+    HELPER_FUNC = 'scripts_pcsp/helper_function.txt'
     ASSERTIONS = 'scripts_pcsp/assertions.txt'
 
     model_string = generate_model_string(ZONE, DOWN, PLAYS, YARDAGE_INCREASE)
@@ -87,11 +88,15 @@ def generate_pcsp():
         yard_probabilities_string += '#define _%s %d;\n' % (p_name, p)
     yard_probabilities_string += "\n//---- End Probabilities Setup ----//\n\n"
 
+    helper_func_string = []
+    with open(HELPER_FUNC) as f:
+        helper_func_string = f.readlines()
+
     assertions_string = []
     with open(ASSERTIONS) as f:
         assertions_string = f.readlines()
     
-    lines = setup_string + [play_probabilities_string] + [yard_probabilities_string] + [model_string] + assertions_string
+    lines = setup_string + [play_probabilities_string] + [yard_probabilities_string] + [model_string] + helper_func_string + assertions_string
 
     # write to file
     with open(file_name, 'w') as f:
