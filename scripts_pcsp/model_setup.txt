@@ -45,8 +45,8 @@ the actual representation of an American Football field varies slightly.
 var down = 1;
 
 // Starting position for the attacking team
-var pos_down = 20; // only update when first down is achieved
-var pos = 20;
+var first_down_pos = 20; // only update when first down is achieved
+var curr_pos = 20;
 
 // zone 1: 0-24 yards, zone 2: 25-49 yards, zone 3: 50-74 yards, zone 4: 75-100 yards 
 var zone = 1;
@@ -56,7 +56,7 @@ var score_field_goal = 0;
 
 // Attacking team can score two types of goals namely the fieldgoal and touchdown
 #define SCORE_FIELDGOAL score_field_goal == 1;
-#define SCORE_TOUCHDOWN pos >= 100;
+#define SCORE_TOUCHDOWN curr_pos >= 100;
 
 /* The condition to check the probability of the attacking team using up all 4
 downs without gaining a first down or has reached the last bin. */

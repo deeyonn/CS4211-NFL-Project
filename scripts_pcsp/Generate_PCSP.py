@@ -42,12 +42,7 @@ def generate_model_string(ZONE, DOWN, PLAYS, YARDAGE_INCREASE):
                     model_string += "pcase {"
 
                     for yardage in YARDAGE_INCREASE:
-                        model_string += f"{BR_4TAB}_{zone}_{down}_{play}_{yardage}: "
-
-                        if yardage <= 10:
-                            model_string += f"{play}{{ down++; pos = pos + {yardage} }} -> NextPlay"
-                        else:
-                            model_string += f"{play}{{ down = 1; pos = pos + {yardage} }} -> NextPlay"
+                        model_string += f"{BR_4TAB}_{zone}_{down}_{play}_{yardage}: UpdatePos({yardage})"
 
                     model_string += f"{BR_3TAB}}}"
 
@@ -84,7 +79,7 @@ def generate_pcsp():
     yard_probabilities_string = "\n"
     for p_name, p in yard_probabilities_dict.items():
         #TODO: make it dynamic
-        p = int(math.floor(p * 100000000))
+        p = int(math.floor(p * 1000))
         yard_probabilities_string += '#define _%s %d;\n' % (p_name, p)
     yard_probabilities_string += "\n//---- End Probabilities Setup ----//\n\n"
 
