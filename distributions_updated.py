@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import gamma
-from data_processing_advanced import yardage
+from data_processing import yardage
 
 def fit_and_estimate_probabilities(dummy_data):
     filtered_data = {k: dummy_data[k] for k in dummy_data if k.endswith('_run') or k.endswith('_pass')}
@@ -51,8 +51,8 @@ def fit_and_estimate_probabilities(dummy_data):
 
 data = yardage('KC')
 probabilities_dict = fit_and_estimate_probabilities(data)
-print(probabilities_dict)
+# print(probabilities_dict)
 
-data = yardage('KC')
-probabilities_dict = fit_and_estimate_probabilities(data)
-print(probabilities_dict)
+# data = yardage('KC')
+# probabilities_dict = fit_and_estimate_probabilities(data)
+# print(probabilities_dict)

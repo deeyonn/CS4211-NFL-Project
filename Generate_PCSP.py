@@ -1,10 +1,6 @@
-import os
-import sys
 import math
-parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-sys.path.append(parent_dir)
-from processing.distributions import probabilities as yard_probabilities_dict
-from processing.data_processing_advanced import type as get_data_for_team
+from distributions_updated import probabilities_dict as yard_probabilities_dict
+from data_processing import type as get_data_for_team
 
 # Convenience constants for line breaks and indentation.
 BR = "\n"
@@ -17,6 +13,7 @@ BR_4TAB = "\n\t\t\t\t"
 TEAM = "KC"
 ZONE = 4
 DOWN = ['1st', '2nd', '3rd', '4th'] 
+# PLAYS = ['run', 'pass','pass_incomp', 'punt', 'field_goal', 'turnover']
 PLAYS = ['run', 'pass', 'punt', 'field_goal', 'turnover']
 YARDAGE_INCREMENT = 4
 MAX_YARDAGE = 20
@@ -42,10 +39,13 @@ def generate_model_string(ZONE, DOWN, PLAYS, YARDAGE_INCREASE):
                     model_string += "pcase {"
 
                     for yardage in YARDAGE_INCREASE:
-                        model_string += f"{BR_4TAB}_{zone}_{down}_{play}_{yardage}: UpdatePos({yardage})"
+                        play_upp_case = play.upper()
+                        model_string += f"{BR_4TAB}_{zone}_{down}_{play}_{yardage}: UpdatePos({yardage}, {play_upp_case})"
 
                     model_string += f"{BR_3TAB}}}"
 
+                # elif play == "pass_incomp":
+                #     model_string += "UpdatePos(0)"
                 elif play == "punt" or play == "turnover":
                     model_string += f"{play}{{down = 5}} -> NextPlay // Game over"
                 elif play == "field_goal":
@@ -58,9 +58,9 @@ def generate_model_string(ZONE, DOWN, PLAYS, YARDAGE_INCREASE):
 
 # generate pcsp file
 def generate_pcsp():
-    SETUP = 'scripts_pcsp/model_setup.txt'
-    HELPER_FUNC = 'scripts_pcsp/helper_function.txt'
-    ASSERTIONS = 'scripts_pcsp/assertions.txt'
+    SETUP = 'script_model_setup.txt'
+    HELPER_FUNC = 'script_helper_function.txt'
+    ASSERTIONS = 'script_assertions.txt'
 
     model_string = generate_model_string(ZONE, DOWN, PLAYS, YARDAGE_INCREASE)
     play_probabilities_df = get_data_for_team(TEAM)
