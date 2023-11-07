@@ -13,8 +13,8 @@ BR_4TAB = "\n\t\t\t\t"
 TEAM = "KC"
 ZONE = 4
 DOWN = ['1st', '2nd', '3rd', '4th'] 
-# PLAYS = ['run', 'pass','pass_incomp', 'punt', 'field_goal', 'turnover']
-PLAYS = ['run', 'pass', 'punt', 'field_goal', 'turnover']
+PLAYS = ['run', 'pass','pass_incomp', 'punt', 'field_goal', 'turnover']
+# PLAYS = ['run', 'pass', 'punt', 'field_goal', 'turnover']
 YARDAGE_INCREMENT = 4
 MAX_YARDAGE = 20
 
@@ -44,8 +44,9 @@ def generate_model_string(ZONE, DOWN, PLAYS, YARDAGE_INCREASE):
 
                     model_string += f"{BR_3TAB}}}"
 
-                # elif play == "pass_incomp":
-                #     model_string += "UpdatePos(0)"
+                elif play == "pass_incomp":
+                    play_upp_case = play.upper()
+                    model_string += f"UpdatePos(0, {play_upp_case})"
                 elif play == "punt" or play == "turnover":
                     model_string += f"{play}{{down = 5}} -> NextPlay // Game over"
                 elif play == "field_goal":

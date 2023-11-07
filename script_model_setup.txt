@@ -62,7 +62,7 @@ var score_field_goal = 0;
 downs without gaining a first down or has reached the last bin. */
 #define GAME_OVER down > 4 || SCORE_FIELDGOAL || SCORE_TOUCHDOWN;
 
-enum {PASS, RUN};
+enum {PASS, RUN, PASS_INCOMP};
 //---- End Model Setup ----//
 
 //---- Probabilities Setup ----//
