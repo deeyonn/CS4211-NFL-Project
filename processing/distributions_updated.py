@@ -8,11 +8,8 @@ def fit_and_estimate_probabilities(dummy_data):
     probabilities_dict = {}
 
     for key, yardages in filtered_data.items():
-        if 'pass' in key:
-            yardages = [y for y in yardages if y > 0]
-        else:
-            yardages = [y for y in yardages if y >= 0]
-
+        yardages = [y for y in yardages if y > 0]
+        
         if len(yardages) < 2:
             probabilities_dict[f"{key}_0"] = 1.0
             for bucket_key in ['4', '8', '12', '16', '20']:
@@ -51,6 +48,10 @@ def fit_and_estimate_probabilities(dummy_data):
         # plt.show()
         
     return probabilities_dict
+
+data = yardage('KC')
+probabilities_dict = fit_and_estimate_probabilities(data)
+print(probabilities_dict)
 
 data = yardage('KC')
 probabilities_dict = fit_and_estimate_probabilities(data)
