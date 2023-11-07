@@ -115,7 +115,7 @@ def data_manipulation(data):
 def play_type_frequency(data, num_sides):
     ############ only keep relevant columns ##############
     # define the columns to keep
-    columns_to_keep = ['down', 'ydstogo', 'actions', 'side']
+    columns_to_keep = ['down', 'ydstogo', 'actions', 'side', 'yards_gained']
 
     # Keep only the specified columns
     team_nfl = data.loc[:, columns_to_keep]
@@ -151,7 +151,7 @@ def play_type_frequency(data, num_sides):
         count = len(filtered)
         value = str(side)
 
-        # print(value + " = " + str(count))
+        #print(value + " = " + str(count))
 
         # results_df.loc[len(results_df)] = {'Value': value, 'Count': count}
 
@@ -161,18 +161,40 @@ def play_type_frequency(data, num_sides):
             count = len(filtered_downs)
             value = str(side) + "_" + str(down)
 
-            # print(value + " = " + str(count))
+            #print(value + " = " + str(count))
 
             # results_df.loc[len(results_df)] = {'Value': value, 'Count': count}
 
             for play_type in types:
+
                 filtered_types = filtered_downs[filtered_downs['actions'] == play_type]
-                count = len(filtered_types)
-                value = str(side) + "_" + str(down) + "_" + play_type
 
-                # print(value + " = " + str(count))
+                if play_type == "pass":
+                    incomplete = "incomp"
 
-                results_df.loc[len(results_df)] = {'Value': value, 'Count': count}
+                    incomplete_count = 0
+                    complete_count = 0
+                    for pass_type in filtered_types.iterrows():
+
+                        yards_gained = pass_type[1]['yards_gained']
+
+                        if yards_gained <= 0:
+                            incomplete_count = incomplete_count + 1
+                        else:
+                            complete_count = complete_count + 1
+
+                    pass_value = str(side) + "_" + str(down) + "_" + play_type
+                    incomp_value = str(side) + "_" + str(down) + "_" + play_type + "_" + incomplete
+                    #print(pass_value + " = " + str(complete_count))
+                    #print(incomp_value + " = " + str(incomplete_count))
+                    results_df.loc[len(results_df)] = {'Value': pass_value, 'Count': complete_count}
+                    results_df.loc[len(results_df)] = {'Value': incomp_value, 'Count': incomplete_count}
+
+                else:
+                    count = len(filtered_types)
+                    value = str(side) + "_" + str(down) + "_" + play_type
+                    #print(value + " = " + str(count))
+                    results_df.loc[len(results_df)] = {'Value': value, 'Count': count}
 
     return results_df
 
