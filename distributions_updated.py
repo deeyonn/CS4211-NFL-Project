@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import gamma
-from data_processing import yardage
+from data_processing_advanced import yardage
 
 def fit_and_estimate_probabilities(dummy_data):
     filtered_data = {k: dummy_data[k] for k in dummy_data if k.endswith('_run') or k.endswith('_pass')}
@@ -12,7 +12,7 @@ def fit_and_estimate_probabilities(dummy_data):
         
         if len(yardages) < 2:
             probabilities_dict[f"{key}_0"] = 1.0
-            for bucket_key in ['4', '8', '12', '16', '20']:
+            for bucket_key in ['4', '8', '12', '16', '20', '24', '28', '32']:
                 probabilities_dict[f"{key}_{bucket_key}"] = 0.0
             continue
 
@@ -22,8 +22,8 @@ def fit_and_estimate_probabilities(dummy_data):
 
         gamma_dist = gamma(shape, loc=loc, scale=scale)
         
-        buckets = [(0,), (1, 4), (5, 8), (9, 12), (13, 16), (17, np.inf)]
-        bucket_keys = ['0', '4', '8', '12', '16', '20']
+        buckets = [(0,), (1, 4), (5, 8), (9, 12), (13, 16), (17, 20), (21, 24), (25, 28), (29, np.inf)]
+        bucket_keys = ['0', '4', '8', '12', '16', '20', '24', '28', '32']
         
         for bucket, bucket_key in zip(buckets, bucket_keys):
             bucket_key_full = f"{key}_{bucket_key}"
@@ -51,8 +51,4 @@ def fit_and_estimate_probabilities(dummy_data):
 
 data = yardage('KC')
 probabilities_dict = fit_and_estimate_probabilities(data)
-# print(probabilities_dict)
-
-# data = yardage('KC')
-# probabilities_dict = fit_and_estimate_probabilities(data)
-# print(probabilities_dict)
+print(len(probabilities_dict))
