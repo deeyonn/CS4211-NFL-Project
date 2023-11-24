@@ -9,18 +9,18 @@ BR_2TAB = "\n\t\t"
 BR_3TAB = "\n\t\t\t"
 BR_4TAB = "\n\t\t\t\t"
 
-# These constants can be adjusted to accommodate various requirements.
+# These can be adjusted to accommodate various requirements.
 TEAM = "KC"
 OPP_TEAM = "NYJ"
+
 ZONE = 4
 DOWN = ['1st', '2nd', '3rd', '4th'] 
 PLAYS = ['run', 'pass','pass_incomp', 'punt', 'field_goal', 'turnover']
-# PLAYS = ['run', 'pass', 'punt', 'field_goal', 'turnover']
-YARDAGE_INCREMENT = 4
-MAX_YARDAGE = 20
 
 # Use to generate probabilities for a play advancing YARDAGE_INCREMENT
 YARDAGE_INCREASE = list(range(0, MAX_YARDAGE + 1, YARDAGE_INCREMENT))
+YARDAGE_INCREMENT = 4
+MAX_YARDAGE = 20
 
 def generate_model_string(ZONE, DOWN, PLAYS, YARDAGE_INCREASE):
     model_string = "GuardedDown = [!GAME_OVER]Go->ExecuteDown;\n\n" + "// Guarded process that only runs the next down if the attacking team has not completed all 4.\n" + "NextPlay = GuardedDown[][GAME_OVER] Skip;\n\n" + "// Function to simulate a single down. Only executes if the attacking team has not used all 4 downs.\n"
@@ -69,8 +69,8 @@ def generate_pcsp():
     data = yardage(TEAM)
     yard_probabilities_dict = fit_and_estimate_probabilities(data, TEAM, OPP_TEAM)
     
-    # file_name = '%s_%s_%s.pcsp' % (date, team1_name.replace(' ', '-'), team2_name.replace(' ', '-'))
-    file_name = 'output/test.pcsp'
+    file_name = '%s_%s.pcsp' % (TEAM, OPP_TEAM)
+    file_path = 'output/' + file_name
 
     setup_string = []
     with open(SETUP) as f:
@@ -98,7 +98,7 @@ def generate_pcsp():
     lines = setup_string + [play_probabilities_string] + [yard_probabilities_string] + [model_string] + helper_func_string + assertions_string
 
     # write to file
-    with open(file_name, 'w') as f:
+    with open(file_path, 'w') as f:
         for line in lines:
             f.write(line)
 
