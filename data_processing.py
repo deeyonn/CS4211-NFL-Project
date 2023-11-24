@@ -116,8 +116,8 @@ def data_manipulation(data, given_team):
     # create the actions column
     data = actions_column(data)
 
-    # create the buckets
-    data = bucket_column(data)
+    # create the bucketsz
+    data = bucket_column(data, given_team)
 
     return data
 

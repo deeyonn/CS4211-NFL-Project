@@ -1,5 +1,5 @@
 import math
-from distributions_updated import probabilities_dict as yard_probabilities_dict
+from distributions_updated import yardage, fit_and_estimate_probabilities
 from data_processing import type as get_data_for_team
 
 # Convenience constants for line breaks and indentation.
@@ -11,6 +11,7 @@ BR_4TAB = "\n\t\t\t\t"
 
 # These constants can be adjusted to accommodate various requirements.
 TEAM = "KC"
+OPP_TEAM = "NYJ"
 ZONE = 4
 DOWN = ['1st', '2nd', '3rd', '4th'] 
 PLAYS = ['run', 'pass','pass_incomp', 'punt', 'field_goal', 'turnover']
@@ -65,6 +66,8 @@ def generate_pcsp():
 
     model_string = generate_model_string(ZONE, DOWN, PLAYS, YARDAGE_INCREASE)
     play_probabilities_df = get_data_for_team(TEAM)
+    data = yardage(TEAM)
+    yard_probabilities_dict = fit_and_estimate_probabilities(data, TEAM, OPP_TEAM)
     
     # file_name = '%s_%s_%s.pcsp' % (date, team1_name.replace(' ', '-'), team2_name.replace(' ', '-'))
     file_name = 'output/test.pcsp'
