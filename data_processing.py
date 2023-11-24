@@ -35,18 +35,28 @@ def data_preparation(team):
     return team_nfl
 
 
-def bucket_column(data):
+def bucket_column(data, given_team):
     # create a new column that specifies in which bucket the drive is at the moment (currently only two buckets)
     # TODO: make it more versatile for multiple buckets for future modifications
     def assign_value(row):
-        if row['yardline_100'] <= 25.0:
-            return '1'
-        elif row['yardline_100'] > 25.0 and row['yardline_100'] <= 50.0:
-            return '2'
-        elif row['yardline_100'] > 50.0 and row['yardline_100'] <= 75.0:
-            return '3'
+        value = row['yrdln']
+        value_array = value.split()
+        team = value_array[0]
+        yards = float(value_array[1])
+
+        if team == given_team:
+
+            if yards <= 25.0:
+                return '1'
+            else:
+                return '2'
         else:
-            return '4'
+            if team == "MID":
+                return '2'
+            elif yards >= 25.0:
+                return '3'
+            else:
+                return '4'
 
     # Apply the function to create the new column
     data['side'] = data.apply(assign_value, axis=1)
@@ -90,7 +100,7 @@ def actions_column(data):
     return data
 
 
-def data_manipulation(data):
+def data_manipulation(data, given_team):
     ############ removing all unwanted play types ###########
     # define the play types to keep
     valid_play_types = ['run', 'pass', 'punt', 'field_goal']
@@ -253,14 +263,14 @@ def yards_gained_arrays(data, num_sides):
 
 
 def yardage(team):
-    data = data_manipulation(data_preparation(team))
+    data = data_manipulation(data_preparation(team), team)
     result = yards_gained_arrays(data, 4)
 
     return result
 
 
 def type(team):
-    data = data_manipulation(data_preparation(team))
+    data = data_manipulation(data_preparation(team), team)
     result = play_type_frequency(data, 4)
 
     return result
