@@ -2,8 +2,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import gamma
 from data_processing_advanced import yardage
+import pandas as pd
 
-def fit_and_estimate_probabilities(dummy_data):
+def get_elo_ratings(team_name):
+    df = pd.read_csv('nfl_elo_ratings.csv')
+    team_rating = df[df['team'] == team_name]['rating'].values[0]
+    return team_rating
+
+def fit_and_estimate_probabilities(dummy_data, off_team, def_team):
+    off_elo = get_elo_ratings(off_team)
+    def_elo = get_elo_ratings(def_team)
+    elo_diff = off_elo - def_elo
+    SCALE_COEFF = 0.0005
+    scaling_factor = 1 + (elo_diff * SCALE_COEFF)
+
     filtered_data = {k: dummy_data[k] for k in dummy_data if k.endswith('_run') or k.endswith('_pass')}
     probabilities_dict = {}
 
@@ -12,18 +24,18 @@ def fit_and_estimate_probabilities(dummy_data):
         
         if len(yardages) < 2:
             probabilities_dict[f"{key}_0"] = 1.0
-            for bucket_key in ['4', '8', '12', '16', '20', '24', '28', '32']:
+            for bucket_key in ['4', '8', '12', '16', '20']:
                 probabilities_dict[f"{key}_{bucket_key}"] = 0.0
             continue
 
-        yardages = np.array(yardages)
+        yardages = np.array(yardages) * scaling_factor
 
         shape, loc, scale = gamma.fit(yardages, floc=0)
 
         gamma_dist = gamma(shape, loc=loc, scale=scale)
         
-        buckets = [(0,), (1, 4), (5, 8), (9, 12), (13, 16), (17, 20), (21, 24), (25, 28), (29, np.inf)]
-        bucket_keys = ['0', '4', '8', '12', '16', '20', '24', '28', '32']
+        buckets = [(0,), (1, 4), (5, 8), (9, 12), (13, 16), (17, np.inf)]
+        bucket_keys = ['0', '4', '8', '12', '16', '20']
         
         for bucket, bucket_key in zip(buckets, bucket_keys):
             bucket_key_full = f"{key}_{bucket_key}"
@@ -50,5 +62,5 @@ def fit_and_estimate_probabilities(dummy_data):
     return probabilities_dict
 
 data = yardage('KC')
-probabilities_dict = fit_and_estimate_probabilities(data)
+probabilities_dict = fit_and_estimate_probabilities(data, 'KC', 'NYJ')
 print(len(probabilities_dict))
