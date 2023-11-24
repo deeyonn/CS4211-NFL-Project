@@ -1,11 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import gamma
-from data_processing_advanced import yardage
+from data_processing import yardage
 import pandas as pd
 
 def get_elo_ratings(team_name):
-    df = pd.read_csv('nfl_elo_ratings.csv')
+    df = pd.read_csv('datasets/nfl_elo_ratings.csv')
     team_rating = df[df['team'] == team_name]['rating'].values[0]
     return team_rating
 
@@ -63,4 +63,3 @@ def fit_and_estimate_probabilities(dummy_data, off_team, def_team):
 
 data = yardage('KC')
 probabilities_dict = fit_and_estimate_probabilities(data, 'KC', 'NYJ')
-print(len(probabilities_dict))
