@@ -11,7 +11,7 @@ BR_4TAB = "\n\t\t\t\t"
 
 # These can be adjusted to accommodate various requirements.
 TEAM = "KC"
-OPP_TEAM = "NYJ"
+OPP_TEAM = "CLE"
 
 ZONE = 4
 DOWN = ['1st', '2nd', '3rd', '4th'] 
