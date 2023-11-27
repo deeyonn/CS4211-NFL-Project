@@ -1,5 +1,5 @@
 import math
-from distributions_updated import yardage, fit_and_estimate_probabilities
+from distributions import yardage, fit_and_estimate_probabilities
 from data_processing import type as get_data_for_team
 
 # Convenience constants for line breaks and indentation.
