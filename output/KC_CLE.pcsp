@@ -1,0 +1,760 @@
+/* 
+
+Field dimensions: 53.333 yards by 120 yards
+Goal dimensions: 18.6 feet wide, approximately 6 yards
+
+Note: The yardage numbers in the diagram are for visualization purposes only;
+the actual representation of an American Football field varies slightly.
+
+                  score a fieldgoal
+                           |
+                           v
++----------------------#------#------------------------+
+|                                                      |  
+|                                                      |  
++----100----------=------------------=-----------100---+   <- score a touchdown after 100 yards
+|                 =                  =                 |
++----90-----------=------------------=-----------90----+
+|                 =                  =                 |
++----80-----------=------------------=-----------80----+
+|                 =                  =                 |
++----70-----------=------------------=-----------70----+
+|                 =                  =                 |
++----60-----------=------------------=-----------60----+
+|                 =                  =                 |
++----50-----------=------------------=-----------50----+
+|                 =                  =                 |
++----40-----------=------------------=-----------40----+
+|                 =                  =                 |
++----30-----------=------------------=-----------30----+
+|                 =                  =                 |
++----20-----------=----start here----=-----------20----+
+|                 =                  =                 |
++----10-----------=------------------=-----------10----+
+|                 =                  =                 |
++----0------------=------------------=-----------0-----+
+|                       Attacking                      |
+|                         Team                         |
++-----------------------#------#-----------------------+
+
+*/
+
+//---- Model Setup ----//
+
+// The current down. The attacking team starts with 1st down.
+var down = 1;
+
+// Starting position for the attacking team
+var first_down_pos = 20; // only update when first down is achieved
+var curr_pos = 20;
+
+// zone 1: 0-24 yards, zone 2: 25-49 yards, zone 3: 50-74 yards, zone 4: 75-100 yards 
+var zone = 1;
+
+// Indicate whether a fieldgoal is scored
+var score_field_goal = 0;
+
+// Attacking team can score two types of goals namely the fieldgoal and touchdown
+#define SCORE_FIELDGOAL score_field_goal == 1;
+#define SCORE_TOUCHDOWN curr_pos >= 100;
+
+/* The condition to check the probability of the attacking team using up all 4
+downs without gaining a first down or has reached the last bin. */
+#define GAME_OVER down > 4 || SCORE_FIELDGOAL || SCORE_TOUCHDOWN;
+
+enum {PASS, RUN, PASS_INCOMP};
+//---- End Model Setup ----//
+
+//---- Probabilities Setup ----//
+
+/* 
+For this model, we have two types of probabilities: 
+1. probability of choosing a play in the form of x_y_z
+2. probability of the play advancing d yards in the form of x_y_z_d
+where
+x: The zone of the field the attacking team is in. (100 yards split into x zones)
+y: The down number.
+z: The play. run, pass, punt, fieldgoal, turnover.
+d: The number of yards a play managed to advance.
+*/
+#define _1_1st_run 205;
+#define _1_1st_pass 153;
+#define _1_1st_pass_incomp 51;
+#define _1_1st_punt 0;
+#define _1_1st_field_goal 0;
+#define _1_1st_turnover 4;
+#define _1_2nd_run 34;
+#define _1_2nd_pass 98;
+#define _1_2nd_pass_incomp 31;
+#define _1_2nd_punt 0;
+#define _1_2nd_field_goal 0;
+#define _1_2nd_turnover 0;
+#define _1_3rd_run 10;
+#define _1_3rd_pass 32;
+#define _1_3rd_pass_incomp 22;
+#define _1_3rd_punt 0;
+#define _1_3rd_field_goal 0;
+#define _1_3rd_turnover 3;
+#define _1_4th_run 0;
+#define _1_4th_pass 1;
+#define _1_4th_pass_incomp 0;
+#define _1_4th_punt 38;
+#define _1_4th_field_goal 0;
+#define _1_4th_turnover 0;
+#define _2_1st_run 236;
+#define _2_1st_pass 192;
+#define _2_1st_pass_incomp 122;
+#define _2_1st_punt 0;
+#define _2_1st_field_goal 0;
+#define _2_1st_turnover 4;
+#define _2_2nd_run 169;
+#define _2_2nd_pass 229;
+#define _2_2nd_pass_incomp 99;
+#define _2_2nd_punt 0;
+#define _2_2nd_field_goal 0;
+#define _2_2nd_turnover 7;
+#define _2_3rd_run 59;
+#define _2_3rd_pass 115;
+#define _2_3rd_pass_incomp 88;
+#define _2_3rd_punt 0;
+#define _2_3rd_field_goal 0;
+#define _2_3rd_turnover 6;
+#define _2_4th_run 6;
+#define _2_4th_pass 3;
+#define _2_4th_pass_incomp 1;
+#define _2_4th_punt 106;
+#define _2_4th_field_goal 0;
+#define _2_4th_turnover 1;
+#define _3_1st_run 195;
+#define _3_1st_pass 143;
+#define _3_1st_pass_incomp 105;
+#define _3_1st_punt 0;
+#define _3_1st_field_goal 2;
+#define _3_1st_turnover 8;
+#define _3_2nd_run 113;
+#define _3_2nd_pass 137;
+#define _3_2nd_pass_incomp 79;
+#define _3_2nd_punt 0;
+#define _3_2nd_field_goal 2;
+#define _3_2nd_turnover 9;
+#define _3_3rd_run 43;
+#define _3_3rd_pass 90;
+#define _3_3rd_pass_incomp 52;
+#define _3_3rd_punt 0;
+#define _3_3rd_field_goal 3;
+#define _3_3rd_turnover 4;
+#define _3_4th_run 4;
+#define _3_4th_pass 11;
+#define _3_4th_pass_incomp 7;
+#define _3_4th_punt 25;
+#define _3_4th_field_goal 28;
+#define _3_4th_turnover 8;
+#define _4_1st_run 174;
+#define _4_1st_pass 102;
+#define _4_1st_pass_incomp 73;
+#define _4_1st_punt 0;
+#define _4_1st_field_goal 2;
+#define _4_1st_turnover 9;
+#define _4_2nd_run 101;
+#define _4_2nd_pass 106;
+#define _4_2nd_pass_incomp 80;
+#define _4_2nd_punt 0;
+#define _4_2nd_field_goal 1;
+#define _4_2nd_turnover 4;
+#define _4_3rd_run 40;
+#define _4_3rd_pass 71;
+#define _4_3rd_pass_incomp 49;
+#define _4_3rd_punt 0;
+#define _4_3rd_field_goal 1;
+#define _4_3rd_turnover 7;
+#define _4_4th_run 8;
+#define _4_4th_pass 5;
+#define _4_4th_pass_incomp 3;
+#define _4_4th_punt 0;
+#define _4_4th_field_goal 55;
+#define _4_4th_turnover 5;
+
+#define _1_1st_run_0 0;
+#define _1_1st_run_4 312;
+#define _1_1st_run_8 329;
+#define _1_1st_run_12 189;
+#define _1_1st_run_16 93;
+#define _1_1st_run_20 74;
+#define _1_1st_pass_0 0;
+#define _1_1st_pass_4 100;
+#define _1_1st_pass_8 187;
+#define _1_1st_pass_12 185;
+#define _1_1st_pass_16 153;
+#define _1_1st_pass_20 373;
+#define _1_2nd_run_0 0;
+#define _1_2nd_run_4 287;
+#define _1_2nd_run_8 299;
+#define _1_2nd_run_12 190;
+#define _1_2nd_run_16 107;
+#define _1_2nd_run_20 114;
+#define _1_2nd_pass_0 0;
+#define _1_2nd_pass_4 79;
+#define _1_2nd_pass_8 205;
+#define _1_2nd_pass_12 218;
+#define _1_2nd_pass_16 175;
+#define _1_2nd_pass_20 320;
+#define _1_3rd_run_0 0;
+#define _1_3rd_run_4 135;
+#define _1_3rd_run_8 272;
+#define _1_3rd_run_12 235;
+#define _1_3rd_run_16 157;
+#define _1_3rd_run_20 197;
+#define _1_3rd_pass_0 0;
+#define _1_3rd_pass_4 51;
+#define _1_3rd_pass_8 130;
+#define _1_3rd_pass_12 156;
+#define _1_3rd_pass_16 150;
+#define _1_3rd_pass_20 511;
+#define _1_4th_run_0 1000;
+#define _1_4th_run_4 0;
+#define _1_4th_run_8 0;
+#define _1_4th_run_12 0;
+#define _1_4th_run_16 0;
+#define _1_4th_run_20 0;
+#define _1_4th_pass_0 1000;
+#define _1_4th_pass_4 0;
+#define _1_4th_pass_8 0;
+#define _1_4th_pass_12 0;
+#define _1_4th_pass_16 0;
+#define _1_4th_pass_20 0;
+#define _2_1st_run_0 0;
+#define _2_1st_run_4 387;
+#define _2_1st_run_8 330;
+#define _2_1st_run_12 163;
+#define _2_1st_run_16 70;
+#define _2_1st_run_20 46;
+#define _2_1st_pass_0 0;
+#define _2_1st_pass_4 101;
+#define _2_1st_pass_8 210;
+#define _2_1st_pass_12 206;
+#define _2_1st_pass_16 163;
+#define _2_1st_pass_20 318;
+#define _2_2nd_run_0 0;
+#define _2_2nd_run_4 395;
+#define _2_2nd_run_8 328;
+#define _2_2nd_run_12 161;
+#define _2_2nd_run_16 69;
+#define _2_2nd_run_20 45;
+#define _2_2nd_pass_0 0;
+#define _2_2nd_pass_4 130;
+#define _2_2nd_pass_8 210;
+#define _2_2nd_pass_12 191;
+#define _2_2nd_pass_16 148;
+#define _2_2nd_pass_20 319;
+#define _2_3rd_run_0 0;
+#define _2_3rd_run_4 371;
+#define _2_3rd_run_8 294;
+#define _2_3rd_run_12 165;
+#define _2_3rd_run_16 85;
+#define _2_3rd_run_20 82;
+#define _2_3rd_pass_0 0;
+#define _2_3rd_pass_4 83;
+#define _2_3rd_pass_8 150;
+#define _2_3rd_pass_12 155;
+#define _2_3rd_pass_16 138;
+#define _2_3rd_pass_20 471;
+#define _2_4th_run_0 0;
+#define _2_4th_run_4 304;
+#define _2_4th_run_8 338;
+#define _2_4th_run_12 193;
+#define _2_4th_run_16 93;
+#define _2_4th_run_20 70;
+#define _2_4th_pass_0 0;
+#define _2_4th_pass_4 62;
+#define _2_4th_pass_8 118;
+#define _2_4th_pass_12 130;
+#define _2_4th_pass_16 124;
+#define _2_4th_pass_20 564;
+#define _3_1st_run_0 0;
+#define _3_1st_run_4 307;
+#define _3_1st_run_8 295;
+#define _3_1st_run_12 183;
+#define _3_1st_run_16 102;
+#define _3_1st_run_20 110;
+#define _3_1st_pass_0 0;
+#define _3_1st_pass_4 89;
+#define _3_1st_pass_8 203;
+#define _3_1st_pass_12 208;
+#define _3_1st_pass_16 167;
+#define _3_1st_pass_20 331;
+#define _3_2nd_run_0 0;
+#define _3_2nd_run_4 316;
+#define _3_2nd_run_8 304;
+#define _3_2nd_run_12 183;
+#define _3_2nd_run_16 98;
+#define _3_2nd_run_20 97;
+#define _3_2nd_pass_0 0;
+#define _3_2nd_pass_4 84;
+#define _3_2nd_pass_8 191;
+#define _3_2nd_pass_12 200;
+#define _3_2nd_pass_16 166;
+#define _3_2nd_pass_20 358;
+#define _3_3rd_run_0 0;
+#define _3_3rd_run_4 278;
+#define _3_3rd_run_8 285;
+#define _3_3rd_run_12 188;
+#define _3_3rd_run_16 111;
+#define _3_3rd_run_20 135;
+#define _3_3rd_pass_0 0;
+#define _3_3rd_pass_4 92;
+#define _3_3rd_pass_8 148;
+#define _3_3rd_pass_12 148;
+#define _3_3rd_pass_16 131;
+#define _3_3rd_pass_20 480;
+#define _3_4th_run_0 0;
+#define _3_4th_run_4 440;
+#define _3_4th_run_8 320;
+#define _3_4th_run_12 145;
+#define _3_4th_run_16 58;
+#define _3_4th_run_20 35;
+#define _3_4th_pass_0 0;
+#define _3_4th_pass_4 106;
+#define _3_4th_pass_8 217;
+#define _3_4th_pass_12 210;
+#define _3_4th_pass_16 163;
+#define _3_4th_pass_20 302;
+#define _4_1st_run_0 0;
+#define _4_1st_run_4 446;
+#define _4_1st_run_8 359;
+#define _4_1st_run_12 135;
+#define _4_1st_run_16 42;
+#define _4_1st_run_20 16;
+#define _4_1st_pass_0 0;
+#define _4_1st_pass_4 252;
+#define _4_1st_pass_8 338;
+#define _4_1st_pass_12 213;
+#define _4_1st_pass_16 108;
+#define _4_1st_pass_20 87;
+#define _4_2nd_run_0 0;
+#define _4_2nd_run_4 502;
+#define _4_2nd_run_8 321;
+#define _4_2nd_run_12 119;
+#define _4_2nd_run_16 39;
+#define _4_2nd_run_20 17;
+#define _4_2nd_pass_0 0;
+#define _4_2nd_pass_4 227;
+#define _4_2nd_pass_8 309;
+#define _4_2nd_pass_12 214;
+#define _4_2nd_pass_16 123;
+#define _4_2nd_pass_20 126;
+#define _4_3rd_run_0 0;
+#define _4_3rd_run_4 408;
+#define _4_3rd_run_8 359;
+#define _4_3rd_run_12 153;
+#define _4_3rd_run_16 54;
+#define _4_3rd_run_20 24;
+#define _4_3rd_pass_0 0;
+#define _4_3rd_pass_4 250;
+#define _4_3rd_pass_8 315;
+#define _4_3rd_pass_12 207;
+#define _4_3rd_pass_16 115;
+#define _4_3rd_pass_20 111;
+#define _4_4th_run_0 0;
+#define _4_4th_run_4 447;
+#define _4_4th_run_8 350;
+#define _4_4th_run_12 137;
+#define _4_4th_run_16 45;
+#define _4_4th_run_20 19;
+#define _4_4th_pass_0 0;
+#define _4_4th_pass_4 389;
+#define _4_4th_pass_8 290;
+#define _4_4th_pass_12 159;
+#define _4_4th_pass_16 81;
+#define _4_4th_pass_20 78;
+
+//---- End Probabilities Setup ----//
+
+GuardedDown = [!GAME_OVER]Go->ExecuteDown;
+
+// Guarded process that only runs the next down if the attacking team has not completed all 4.
+NextPlay = GuardedDown[][GAME_OVER] Skip;
+
+// Function to simulate a single down. Only executes if the attacking team has not used all 4 downs.
+ExecuteDown = case {
+	down == 1: case {
+		zone == 1: pcase {
+			_1_1st_run: pcase {
+				_1_1st_run_0: UpdatePos(0, RUN)
+				_1_1st_run_4: UpdatePos(4, RUN)
+				_1_1st_run_8: UpdatePos(8, RUN)
+				_1_1st_run_12: UpdatePos(12, RUN)
+				_1_1st_run_16: UpdatePos(16, RUN)
+				_1_1st_run_20: UpdatePos(20, RUN)
+			}
+			_1_1st_pass: pcase {
+				_1_1st_pass_0: UpdatePos(0, PASS)
+				_1_1st_pass_4: UpdatePos(4, PASS)
+				_1_1st_pass_8: UpdatePos(8, PASS)
+				_1_1st_pass_12: UpdatePos(12, PASS)
+				_1_1st_pass_16: UpdatePos(16, PASS)
+				_1_1st_pass_20: UpdatePos(20, PASS)
+			}
+			_1_1st_pass_incomp: UpdatePos(0, PASS_INCOMP)
+			_1_1st_punt: punt{down = 5} -> NextPlay // Game over
+			_1_1st_field_goal: field_goal{score_field_goal = 1} -> NextPlay // Game over
+			_1_1st_turnover: turnover{down = 5} -> NextPlay // Game over
+		}
+		zone == 2: pcase {
+			_2_1st_run: pcase {
+				_2_1st_run_0: UpdatePos(0, RUN)
+				_2_1st_run_4: UpdatePos(4, RUN)
+				_2_1st_run_8: UpdatePos(8, RUN)
+				_2_1st_run_12: UpdatePos(12, RUN)
+				_2_1st_run_16: UpdatePos(16, RUN)
+				_2_1st_run_20: UpdatePos(20, RUN)
+			}
+			_2_1st_pass: pcase {
+				_2_1st_pass_0: UpdatePos(0, PASS)
+				_2_1st_pass_4: UpdatePos(4, PASS)
+				_2_1st_pass_8: UpdatePos(8, PASS)
+				_2_1st_pass_12: UpdatePos(12, PASS)
+				_2_1st_pass_16: UpdatePos(16, PASS)
+				_2_1st_pass_20: UpdatePos(20, PASS)
+			}
+			_2_1st_pass_incomp: UpdatePos(0, PASS_INCOMP)
+			_2_1st_punt: punt{down = 5} -> NextPlay // Game over
+			_2_1st_field_goal: field_goal{score_field_goal = 1} -> NextPlay // Game over
+			_2_1st_turnover: turnover{down = 5} -> NextPlay // Game over
+		}
+		zone == 3: pcase {
+			_3_1st_run: pcase {
+				_3_1st_run_0: UpdatePos(0, RUN)
+				_3_1st_run_4: UpdatePos(4, RUN)
+				_3_1st_run_8: UpdatePos(8, RUN)
+				_3_1st_run_12: UpdatePos(12, RUN)
+				_3_1st_run_16: UpdatePos(16, RUN)
+				_3_1st_run_20: UpdatePos(20, RUN)
+			}
+			_3_1st_pass: pcase {
+				_3_1st_pass_0: UpdatePos(0, PASS)
+				_3_1st_pass_4: UpdatePos(4, PASS)
+				_3_1st_pass_8: UpdatePos(8, PASS)
+				_3_1st_pass_12: UpdatePos(12, PASS)
+				_3_1st_pass_16: UpdatePos(16, PASS)
+				_3_1st_pass_20: UpdatePos(20, PASS)
+			}
+			_3_1st_pass_incomp: UpdatePos(0, PASS_INCOMP)
+			_3_1st_punt: punt{down = 5} -> NextPlay // Game over
+			_3_1st_field_goal: field_goal{score_field_goal = 1} -> NextPlay // Game over
+			_3_1st_turnover: turnover{down = 5} -> NextPlay // Game over
+		}
+		zone == 4: pcase {
+			_4_1st_run: pcase {
+				_4_1st_run_0: UpdatePos(0, RUN)
+				_4_1st_run_4: UpdatePos(4, RUN)
+				_4_1st_run_8: UpdatePos(8, RUN)
+				_4_1st_run_12: UpdatePos(12, RUN)
+				_4_1st_run_16: UpdatePos(16, RUN)
+				_4_1st_run_20: UpdatePos(20, RUN)
+			}
+			_4_1st_pass: pcase {
+				_4_1st_pass_0: UpdatePos(0, PASS)
+				_4_1st_pass_4: UpdatePos(4, PASS)
+				_4_1st_pass_8: UpdatePos(8, PASS)
+				_4_1st_pass_12: UpdatePos(12, PASS)
+				_4_1st_pass_16: UpdatePos(16, PASS)
+				_4_1st_pass_20: UpdatePos(20, PASS)
+			}
+			_4_1st_pass_incomp: UpdatePos(0, PASS_INCOMP)
+			_4_1st_punt: punt{down = 5} -> NextPlay // Game over
+			_4_1st_field_goal: field_goal{score_field_goal = 1} -> NextPlay // Game over
+			_4_1st_turnover: turnover{down = 5} -> NextPlay // Game over
+		}
+	}
+	down == 2: case {
+		zone == 1: pcase {
+			_1_2nd_run: pcase {
+				_1_2nd_run_0: UpdatePos(0, RUN)
+				_1_2nd_run_4: UpdatePos(4, RUN)
+				_1_2nd_run_8: UpdatePos(8, RUN)
+				_1_2nd_run_12: UpdatePos(12, RUN)
+				_1_2nd_run_16: UpdatePos(16, RUN)
+				_1_2nd_run_20: UpdatePos(20, RUN)
+			}
+			_1_2nd_pass: pcase {
+				_1_2nd_pass_0: UpdatePos(0, PASS)
+				_1_2nd_pass_4: UpdatePos(4, PASS)
+				_1_2nd_pass_8: UpdatePos(8, PASS)
+				_1_2nd_pass_12: UpdatePos(12, PASS)
+				_1_2nd_pass_16: UpdatePos(16, PASS)
+				_1_2nd_pass_20: UpdatePos(20, PASS)
+			}
+			_1_2nd_pass_incomp: UpdatePos(0, PASS_INCOMP)
+			_1_2nd_punt: punt{down = 5} -> NextPlay // Game over
+			_1_2nd_field_goal: field_goal{score_field_goal = 1} -> NextPlay // Game over
+			_1_2nd_turnover: turnover{down = 5} -> NextPlay // Game over
+		}
+		zone == 2: pcase {
+			_2_2nd_run: pcase {
+				_2_2nd_run_0: UpdatePos(0, RUN)
+				_2_2nd_run_4: UpdatePos(4, RUN)
+				_2_2nd_run_8: UpdatePos(8, RUN)
+				_2_2nd_run_12: UpdatePos(12, RUN)
+				_2_2nd_run_16: UpdatePos(16, RUN)
+				_2_2nd_run_20: UpdatePos(20, RUN)
+			}
+			_2_2nd_pass: pcase {
+				_2_2nd_pass_0: UpdatePos(0, PASS)
+				_2_2nd_pass_4: UpdatePos(4, PASS)
+				_2_2nd_pass_8: UpdatePos(8, PASS)
+				_2_2nd_pass_12: UpdatePos(12, PASS)
+				_2_2nd_pass_16: UpdatePos(16, PASS)
+				_2_2nd_pass_20: UpdatePos(20, PASS)
+			}
+			_2_2nd_pass_incomp: UpdatePos(0, PASS_INCOMP)
+			_2_2nd_punt: punt{down = 5} -> NextPlay // Game over
+			_2_2nd_field_goal: field_goal{score_field_goal = 1} -> NextPlay // Game over
+			_2_2nd_turnover: turnover{down = 5} -> NextPlay // Game over
+		}
+		zone == 3: pcase {
+			_3_2nd_run: pcase {
+				_3_2nd_run_0: UpdatePos(0, RUN)
+				_3_2nd_run_4: UpdatePos(4, RUN)
+				_3_2nd_run_8: UpdatePos(8, RUN)
+				_3_2nd_run_12: UpdatePos(12, RUN)
+				_3_2nd_run_16: UpdatePos(16, RUN)
+				_3_2nd_run_20: UpdatePos(20, RUN)
+			}
+			_3_2nd_pass: pcase {
+				_3_2nd_pass_0: UpdatePos(0, PASS)
+				_3_2nd_pass_4: UpdatePos(4, PASS)
+				_3_2nd_pass_8: UpdatePos(8, PASS)
+				_3_2nd_pass_12: UpdatePos(12, PASS)
+				_3_2nd_pass_16: UpdatePos(16, PASS)
+				_3_2nd_pass_20: UpdatePos(20, PASS)
+			}
+			_3_2nd_pass_incomp: UpdatePos(0, PASS_INCOMP)
+			_3_2nd_punt: punt{down = 5} -> NextPlay // Game over
+			_3_2nd_field_goal: field_goal{score_field_goal = 1} -> NextPlay // Game over
+			_3_2nd_turnover: turnover{down = 5} -> NextPlay // Game over
+		}
+		zone == 4: pcase {
+			_4_2nd_run: pcase {
+				_4_2nd_run_0: UpdatePos(0, RUN)
+				_4_2nd_run_4: UpdatePos(4, RUN)
+				_4_2nd_run_8: UpdatePos(8, RUN)
+				_4_2nd_run_12: UpdatePos(12, RUN)
+				_4_2nd_run_16: UpdatePos(16, RUN)
+				_4_2nd_run_20: UpdatePos(20, RUN)
+			}
+			_4_2nd_pass: pcase {
+				_4_2nd_pass_0: UpdatePos(0, PASS)
+				_4_2nd_pass_4: UpdatePos(4, PASS)
+				_4_2nd_pass_8: UpdatePos(8, PASS)
+				_4_2nd_pass_12: UpdatePos(12, PASS)
+				_4_2nd_pass_16: UpdatePos(16, PASS)
+				_4_2nd_pass_20: UpdatePos(20, PASS)
+			}
+			_4_2nd_pass_incomp: UpdatePos(0, PASS_INCOMP)
+			_4_2nd_punt: punt{down = 5} -> NextPlay // Game over
+			_4_2nd_field_goal: field_goal{score_field_goal = 1} -> NextPlay // Game over
+			_4_2nd_turnover: turnover{down = 5} -> NextPlay // Game over
+		}
+	}
+	down == 3: case {
+		zone == 1: pcase {
+			_1_3rd_run: pcase {
+				_1_3rd_run_0: UpdatePos(0, RUN)
+				_1_3rd_run_4: UpdatePos(4, RUN)
+				_1_3rd_run_8: UpdatePos(8, RUN)
+				_1_3rd_run_12: UpdatePos(12, RUN)
+				_1_3rd_run_16: UpdatePos(16, RUN)
+				_1_3rd_run_20: UpdatePos(20, RUN)
+			}
+			_1_3rd_pass: pcase {
+				_1_3rd_pass_0: UpdatePos(0, PASS)
+				_1_3rd_pass_4: UpdatePos(4, PASS)
+				_1_3rd_pass_8: UpdatePos(8, PASS)
+				_1_3rd_pass_12: UpdatePos(12, PASS)
+				_1_3rd_pass_16: UpdatePos(16, PASS)
+				_1_3rd_pass_20: UpdatePos(20, PASS)
+			}
+			_1_3rd_pass_incomp: UpdatePos(0, PASS_INCOMP)
+			_1_3rd_punt: punt{down = 5} -> NextPlay // Game over
+			_1_3rd_field_goal: field_goal{score_field_goal = 1} -> NextPlay // Game over
+			_1_3rd_turnover: turnover{down = 5} -> NextPlay // Game over
+		}
+		zone == 2: pcase {
+			_2_3rd_run: pcase {
+				_2_3rd_run_0: UpdatePos(0, RUN)
+				_2_3rd_run_4: UpdatePos(4, RUN)
+				_2_3rd_run_8: UpdatePos(8, RUN)
+				_2_3rd_run_12: UpdatePos(12, RUN)
+				_2_3rd_run_16: UpdatePos(16, RUN)
+				_2_3rd_run_20: UpdatePos(20, RUN)
+			}
+			_2_3rd_pass: pcase {
+				_2_3rd_pass_0: UpdatePos(0, PASS)
+				_2_3rd_pass_4: UpdatePos(4, PASS)
+				_2_3rd_pass_8: UpdatePos(8, PASS)
+				_2_3rd_pass_12: UpdatePos(12, PASS)
+				_2_3rd_pass_16: UpdatePos(16, PASS)
+				_2_3rd_pass_20: UpdatePos(20, PASS)
+			}
+			_2_3rd_pass_incomp: UpdatePos(0, PASS_INCOMP)
+			_2_3rd_punt: punt{down = 5} -> NextPlay // Game over
+			_2_3rd_field_goal: field_goal{score_field_goal = 1} -> NextPlay // Game over
+			_2_3rd_turnover: turnover{down = 5} -> NextPlay // Game over
+		}
+		zone == 3: pcase {
+			_3_3rd_run: pcase {
+				_3_3rd_run_0: UpdatePos(0, RUN)
+				_3_3rd_run_4: UpdatePos(4, RUN)
+				_3_3rd_run_8: UpdatePos(8, RUN)
+				_3_3rd_run_12: UpdatePos(12, RUN)
+				_3_3rd_run_16: UpdatePos(16, RUN)
+				_3_3rd_run_20: UpdatePos(20, RUN)
+			}
+			_3_3rd_pass: pcase {
+				_3_3rd_pass_0: UpdatePos(0, PASS)
+				_3_3rd_pass_4: UpdatePos(4, PASS)
+				_3_3rd_pass_8: UpdatePos(8, PASS)
+				_3_3rd_pass_12: UpdatePos(12, PASS)
+				_3_3rd_pass_16: UpdatePos(16, PASS)
+				_3_3rd_pass_20: UpdatePos(20, PASS)
+			}
+			_3_3rd_pass_incomp: UpdatePos(0, PASS_INCOMP)
+			_3_3rd_punt: punt{down = 5} -> NextPlay // Game over
+			_3_3rd_field_goal: field_goal{score_field_goal = 1} -> NextPlay // Game over
+			_3_3rd_turnover: turnover{down = 5} -> NextPlay // Game over
+		}
+		zone == 4: pcase {
+			_4_3rd_run: pcase {
+				_4_3rd_run_0: UpdatePos(0, RUN)
+				_4_3rd_run_4: UpdatePos(4, RUN)
+				_4_3rd_run_8: UpdatePos(8, RUN)
+				_4_3rd_run_12: UpdatePos(12, RUN)
+				_4_3rd_run_16: UpdatePos(16, RUN)
+				_4_3rd_run_20: UpdatePos(20, RUN)
+			}
+			_4_3rd_pass: pcase {
+				_4_3rd_pass_0: UpdatePos(0, PASS)
+				_4_3rd_pass_4: UpdatePos(4, PASS)
+				_4_3rd_pass_8: UpdatePos(8, PASS)
+				_4_3rd_pass_12: UpdatePos(12, PASS)
+				_4_3rd_pass_16: UpdatePos(16, PASS)
+				_4_3rd_pass_20: UpdatePos(20, PASS)
+			}
+			_4_3rd_pass_incomp: UpdatePos(0, PASS_INCOMP)
+			_4_3rd_punt: punt{down = 5} -> NextPlay // Game over
+			_4_3rd_field_goal: field_goal{score_field_goal = 1} -> NextPlay // Game over
+			_4_3rd_turnover: turnover{down = 5} -> NextPlay // Game over
+		}
+	}
+	down == 4: case {
+		zone == 1: pcase {
+			_1_4th_run: pcase {
+				_1_4th_run_0: UpdatePos(0, RUN)
+				_1_4th_run_4: UpdatePos(4, RUN)
+				_1_4th_run_8: UpdatePos(8, RUN)
+				_1_4th_run_12: UpdatePos(12, RUN)
+				_1_4th_run_16: UpdatePos(16, RUN)
+				_1_4th_run_20: UpdatePos(20, RUN)
+			}
+			_1_4th_pass: pcase {
+				_1_4th_pass_0: UpdatePos(0, PASS)
+				_1_4th_pass_4: UpdatePos(4, PASS)
+				_1_4th_pass_8: UpdatePos(8, PASS)
+				_1_4th_pass_12: UpdatePos(12, PASS)
+				_1_4th_pass_16: UpdatePos(16, PASS)
+				_1_4th_pass_20: UpdatePos(20, PASS)
+			}
+			_1_4th_pass_incomp: UpdatePos(0, PASS_INCOMP)
+			_1_4th_punt: punt{down = 5} -> NextPlay // Game over
+			_1_4th_field_goal: field_goal{score_field_goal = 1} -> NextPlay // Game over
+			_1_4th_turnover: turnover{down = 5} -> NextPlay // Game over
+		}
+		zone == 2: pcase {
+			_2_4th_run: pcase {
+				_2_4th_run_0: UpdatePos(0, RUN)
+				_2_4th_run_4: UpdatePos(4, RUN)
+				_2_4th_run_8: UpdatePos(8, RUN)
+				_2_4th_run_12: UpdatePos(12, RUN)
+				_2_4th_run_16: UpdatePos(16, RUN)
+				_2_4th_run_20: UpdatePos(20, RUN)
+			}
+			_2_4th_pass: pcase {
+				_2_4th_pass_0: UpdatePos(0, PASS)
+				_2_4th_pass_4: UpdatePos(4, PASS)
+				_2_4th_pass_8: UpdatePos(8, PASS)
+				_2_4th_pass_12: UpdatePos(12, PASS)
+				_2_4th_pass_16: UpdatePos(16, PASS)
+				_2_4th_pass_20: UpdatePos(20, PASS)
+			}
+			_2_4th_pass_incomp: UpdatePos(0, PASS_INCOMP)
+			_2_4th_punt: punt{down = 5} -> NextPlay // Game over
+			_2_4th_field_goal: field_goal{score_field_goal = 1} -> NextPlay // Game over
+			_2_4th_turnover: turnover{down = 5} -> NextPlay // Game over
+		}
+		zone == 3: pcase {
+			_3_4th_run: pcase {
+				_3_4th_run_0: UpdatePos(0, RUN)
+				_3_4th_run_4: UpdatePos(4, RUN)
+				_3_4th_run_8: UpdatePos(8, RUN)
+				_3_4th_run_12: UpdatePos(12, RUN)
+				_3_4th_run_16: UpdatePos(16, RUN)
+				_3_4th_run_20: UpdatePos(20, RUN)
+			}
+			_3_4th_pass: pcase {
+				_3_4th_pass_0: UpdatePos(0, PASS)
+				_3_4th_pass_4: UpdatePos(4, PASS)
+				_3_4th_pass_8: UpdatePos(8, PASS)
+				_3_4th_pass_12: UpdatePos(12, PASS)
+				_3_4th_pass_16: UpdatePos(16, PASS)
+				_3_4th_pass_20: UpdatePos(20, PASS)
+			}
+			_3_4th_pass_incomp: UpdatePos(0, PASS_INCOMP)
+			_3_4th_punt: punt{down = 5} -> NextPlay // Game over
+			_3_4th_field_goal: field_goal{score_field_goal = 1} -> NextPlay // Game over
+			_3_4th_turnover: turnover{down = 5} -> NextPlay // Game over
+		}
+		zone == 4: pcase {
+			_4_4th_run: pcase {
+				_4_4th_run_0: UpdatePos(0, RUN)
+				_4_4th_run_4: UpdatePos(4, RUN)
+				_4_4th_run_8: UpdatePos(8, RUN)
+				_4_4th_run_12: UpdatePos(12, RUN)
+				_4_4th_run_16: UpdatePos(16, RUN)
+				_4_4th_run_20: UpdatePos(20, RUN)
+			}
+			_4_4th_pass: pcase {
+				_4_4th_pass_0: UpdatePos(0, PASS)
+				_4_4th_pass_4: UpdatePos(4, PASS)
+				_4_4th_pass_8: UpdatePos(8, PASS)
+				_4_4th_pass_12: UpdatePos(12, PASS)
+				_4_4th_pass_16: UpdatePos(16, PASS)
+				_4_4th_pass_20: UpdatePos(20, PASS)
+			}
+			_4_4th_pass_incomp: UpdatePos(0, PASS_INCOMP)
+			_4_4th_punt: punt{down = 5} -> NextPlay // Game over
+			_4_4th_field_goal: field_goal{score_field_goal = 1} -> NextPlay // Game over
+			_4_4th_turnover: turnover{down = 5} -> NextPlay // Game over
+		}
+	}
+};
+UpdateDown() = case {
+	curr_pos - first_down_pos >= 10: { first_down_pos = curr_pos; down = 1 } -> NextPlay
+	curr_pos - first_down_pos < 10: { down++ } -> NextPlay
+};
+
+UpdateZone() = case {
+	curr_pos > 100: UpdateDown()
+	curr_pos > 74: { zone = 4 } -> UpdateDown()
+	curr_pos > 49: { zone = 3 } -> UpdateDown()
+	curr_pos > 24: { zone = 2 } -> UpdateDown()
+	curr_pos > 0: { zone = 1 } -> UpdateDown()
+};
+
+UpdatePos(yards_advanced, play) = case{ 
+	play == RUN: run{ curr_pos = curr_pos + yards_advanced } -> UpdateZone()
+	play == PASS: pass{ curr_pos = curr_pos + yards_advanced } -> UpdateZone()
+};
+
+#assert NextPlay deadlockfree;
+#assert NextPlay reaches SCORE_FIELDGOAL with prob;
+#assert NextPlay reaches SCORE_TOUCHDOWN with prob;
